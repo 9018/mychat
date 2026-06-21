@@ -1,0 +1,15 @@
+node_modules/
+frontend/dist/
+outputs/
+.env
+key.txt
+*.log
+.DS_Store
+*~
+764.mp4
+*.mp4
+chat_settings.json
+chat_messages.json
+history.json
+config.json.bak
+*.swp

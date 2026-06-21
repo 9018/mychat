@@ -1,0 +1,73 @@
+{
+  "baseUrl": "http://www.9017i.cc:58901/v1",
+  "videoModel": "agnes-video-v2.0",
+  "imageModel": "agnes-image-2.1-flash",
+  "chatModel": "agnes-2.0-flash",
+  "modelList": [
+    {
+      "id": "gpt-image-2",
+      "types": [
+        "image"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "xiaomi/mimo-v2.5",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "minimax/minimax-m3",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "deepseek-v4-flash-free",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "agnes-image-2.1-flash",
+      "types": [
+        "image"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "gpt-5.5",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "deepseek/deepseek-v4-flash",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "agnes-2.0-flash",
+      "types": [
+        "image",
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "agnes-video-v2.0",
+      "types": [
+        "video"
+      ],
+      "enabled": true
+    }
+  ],
+  "modelListUpdatedAt": "2026-06-12T16:16:46.467Z"
+}
