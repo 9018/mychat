@@ -13,3 +13,4 @@ chat_messages.json
 history.json
 config.json.bak
 *.swp
+mkcert_bin

@@ -7,7 +7,9 @@ import type { Model } from '@/api/types'
 import { ModelSelect } from '@/components/common/ModelSelect'
 import { showToast } from '@/components/common/Toast'
 import { apiProxyGet } from '@/api/client'
-import { guessModelType, escapeHtml } from '@/lib/utils'
+import { guessModelType } from '@/lib/utils'
+
+
 
 export function AdminPage() {
   const { apiKey, setApiKey, save, isReady } = useKey()
@@ -15,6 +17,7 @@ export function AdminPage() {
   const [baseUrl, setBaseUrl] = useState(config.baseUrl)
   const [keyInput, setKeyInput] = useState(apiKey)
   const [fetching, setFetching] = useState(false)
+  const [showDisabled, setShowDisabled] = useState(false)
 
   useEffect(() => {
     setKeyInput(apiKey)
@@ -54,7 +57,6 @@ export function AdminPage() {
       setFetching(false)
     }
   }
-
   const updateModel = (idx: number, field: string, value: any) => {
     const list = [...config.modelList]
     const m = { ...list[idx] }
@@ -130,13 +132,16 @@ export function AdminPage() {
       {/* Model Management */}
       <div className="card" style={{ padding: 16, borderRadius: 'var(--r-lg)', background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600 }}>模型列表</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600 }}>模型列表 <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)' }}>已启用 {config.modelList.filter(m => m.enabled).length} / 共 {config.modelList.length}</span></h3>
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={handleFetchModels} disabled={fetching} className="btn btn-subtle" style={{ fontSize: 12, padding: '4px 10px' }}>
               {fetching ? '拉取中…' : '🔄 拉取'}
             </button>
             <button onClick={addModel} className="btn btn-subtle" style={{ fontSize: 12, padding: '4px 10px' }}>+ 添加</button>
             <button onClick={saveAllConfig} className="btn btn-accent" style={{ fontSize: 12, padding: '4px 10px' }}>💾 保存配置</button>
+            <button onClick={() => setShowDisabled(!showDisabled)} className="btn btn-subtle" style={{ fontSize: 12, padding: '4px 10px' }}>
+              {showDisabled ? '🙈 隐藏禁用' : '👁 显示全部'}
+            </button>
           </div>
         </div>
 
@@ -152,10 +157,10 @@ export function AdminPage() {
           <tbody>
             {config.modelList.length === 0 ? (
               <tr><td colSpan={4} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>暂无模型，点击上方按钮拉取或手动添加</td></tr>
-            ) : config.modelList.map((m, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+            ) : config.modelList.filter(m2 => showDisabled || m2.enabled).map((m) => (
+              <tr key={config.modelList.indexOf(m)} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                 <td style={{ padding: '4px 8px' }}>
-                  <input type="text" value={m.id} onChange={e => updateModel(idx, 'id', e.target.value)}
+                  <input type="text" value={m.id} onChange={e => updateModel(config.modelList.indexOf(m), 'id', e.target.value)}
                     placeholder="模型 ID" style={{ width: '100%', minWidth: 120, fontSize: 12 }} />
                 </td>
                 <td style={{ padding: '4px 8px' }}>
@@ -163,7 +168,7 @@ export function AdminPage() {
                     {['chat', 'image', 'video', 'other'].map(t => (
                       <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
                         <input type="checkbox" checked={m.types.includes(t as any)}
-                          onChange={e => updateModel(idx, 'types', { type: t, checked: e.target.checked })} />
+                          onChange={e => updateModel(config.modelList.indexOf(m), 'types', { type: t, checked: e.target.checked })} />
                         <span>{t}</span>
                       </label>
                     ))}
@@ -171,10 +176,10 @@ export function AdminPage() {
                 </td>
                 <td style={{ textAlign: 'center', padding: '4px 8px' }}>
                   <input type="checkbox" checked={m.enabled}
-                    onChange={e => updateModel(idx, 'enabled', e.target.checked)} />
+                    onChange={e => updateModel(config.modelList.indexOf(m), 'enabled', e.target.checked)} />
                 </td>
                 <td style={{ padding: '4px 8px' }}>
-                  <button onClick={() => deleteModel(idx)} className="btn btn-icon" style={{ fontSize: 14 }}>×</button>
+                  <button onClick={() => deleteModel(config.modelList.indexOf(m))} className="btn btn-icon" style={{ fontSize: 14 }}>×</button>
                 </td>
               </tr>
             ))}

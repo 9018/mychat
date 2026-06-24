@@ -12,6 +12,7 @@ const TABS: Array<{ id: TabType; icon: string; label: string }> = [
   { id: 'video', icon: '▶', label: '视频' },
   { id: 'image', icon: '🖼', label: '图像' },
   { id: 'chat', icon: '💬', label: '聊天' },
+  { id: 'tts', icon: '🎙️', label: '语音' },
   { id: 'material', icon: '📦', label: '素材' },
   { id: 'admin', icon: '⚙', label: '管理' },
 ]

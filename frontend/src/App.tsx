@@ -14,6 +14,7 @@ import { ChatPage } from '@/pages/ChatPage'
 import { AdminPage } from '@/pages/AdminPage'
 import { MaterialPage } from '@/pages/MaterialPage'
 import type { TabType, VideoMode, ImgMode } from '@/api/types'
+import TTSPage from '@/pages/TTSPage'
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<TabType>('image')
@@ -38,6 +39,7 @@ function AppContent() {
           {activeTab === 'video' && <VideoPage videoMode={videoMode} onVideoModeChange={setVideoMode} />}
           {activeTab === 'image' && <ImagePage imgMode={imgMode} onImgModeChange={setImgMode} />}
           {activeTab === 'chat' && <ChatPage />}
+          {activeTab === 'tts' && <TTSPage />}
           {activeTab === 'admin' && <AdminPage />}
           {activeTab === 'material' && <MaterialPage />}
         </div>

@@ -15,6 +15,7 @@ const TOPBAR_MAP: Record<string, { title: string; sub: string }> = {
   image: { title: '图像生成', sub: 'Text-to-Image · Image-to-Image · 构图保留 · 高密度优化' },
   chat: { title: '对话', sub: '多模型流式 SSE 对话' },
   admin: { title: '管理', sub: 'API 令牌 · 模型配置' },
+  tts: { title: '语音合成', sub: 'MiMo V2.5 TTS · 预置音色 · 音色设计 · 音色复刻' },
   material: { title: '素材分析助手', sub: 'ChatGPT 联动工作流 · 批量生图' },
 }
 

@@ -32,7 +32,7 @@ export interface HistoryItem {
 
 export type ImgMode = 'txt2img' | 'img2img' | 'composition' | 'high_density'
 export type VideoMode = 'text' | 'image' | 'multi' | 'keyframe'
-export type TabType = 'video' | 'image' | 'chat' | 'admin' | 'material'
+export type TabType = 'video' | 'image' | 'chat' | 'tts' | 'admin' | 'material'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'

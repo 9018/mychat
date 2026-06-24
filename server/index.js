@@ -3,6 +3,7 @@
 // 聚合中间件、注册路由、启动 HTTP 服务
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -23,6 +24,9 @@ require('./routes/static').register(router);
 require('./routes/video-proxy').register(router);
 require('./routes/proxy-agnesapi').register(router);
 require('./routes/proxy-v1').register(router);
+// MiMo TTS routes
+require('./routes/mimo-key').register(router);
+require('./routes/proxy-mimo').register(router);
 
 // ── 生产模式：托管前端构建产物 ──────────────────────────────────
 const DIST_DIR = path.join(__dirname, '..', 'frontend', 'dist');
@@ -32,8 +36,8 @@ function serveFrontend(req, res) {
 
   // 跳过 API 和静态文件路径
   if (req.url.startsWith('/api/') || req.url.startsWith('/v1/') ||
-      req.url.startsWith('/agnesapi') || req.url.startsWith('/video-proxy') ||
-      req.url.startsWith('/outputs/')) {
+      req.url.startsWith('/mimo/') || req.url.startsWith('/agnesapi') ||
+      req.url.startsWith('/video-proxy') || req.url.startsWith('/outputs/')) {
     return false;
   }
 
@@ -69,8 +73,13 @@ function serveFrontend(req, res) {
 }
 
 // ── 创建 HTTP 服务 ──────────────────────────────────────────────
+const SSL_PORT = process.env.SSL_PORT || 12300;
 const PORT = process.env.PORT || 12301;
 const HOST = process.env.HOST || '0.0.0.0';
+const sslOptions = {
+  key: fs.readFileSync(path.join(__dirname, 'ssl', 'key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'ssl', 'cert.pem')),
+};
 
 const server = http.createServer(async (req, res) => {
   // 1. 请求日志
@@ -123,5 +132,33 @@ server.listen(PORT, HOST, () => {
   console.log(`\n  Agnes AI Gateway · 后端服务已启动 (${mode})`);
   console.log(`  监听地址: http://localhost:${PORT}\n`);
 });
+
+
+// ── HTTPS 服务（自签名证书，用于麦克风录音） ──────────────────
+try {
+  https.createServer(sslOptions, async (req, res) => {
+    logger(req, res);
+    setCorsHeaders(res);
+    if (handlePreflight(req, res)) return;
+    try { await parseBody(req); } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: `请求体解析失败: ${err.message}` }));
+      return;
+    }
+    let bodyRaw = "";
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+      bodyRaw = JSON.stringify(req.body);
+    }
+    const matched = await router.handle(req, res, bodyRaw);
+    if (matched) return;
+    if (serveFrontend(req, res)) return;
+    res.writeHead(404);
+    res.end('Not found');
+  }).listen(SSL_PORT, HOST, () => {
+    console.log(`  HTTPS:  https://localhost:${SSL_PORT}/`);
+  });
+} catch (err) {
+  console.error('[警告] HTTPS 服务启动失败（不影响 HTTP）:', err.message);
+}
 
 module.exports = server;

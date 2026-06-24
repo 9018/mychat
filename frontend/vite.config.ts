@@ -17,6 +17,7 @@ export default defineConfig({
       '/agnesapi': 'http://localhost:12301',
       '/video-proxy': 'http://localhost:12301',
       '/outputs': 'http://localhost:12301',
+      '/mimo': 'http://localhost:12301',
     },
   },
 })
