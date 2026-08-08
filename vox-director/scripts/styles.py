@@ -7,6 +7,8 @@ compose_keyframe_prompt() appends the beat's scene + a shared bilingual
 title/seal treatment so the whole film stays coherent while the style evolves.
 """
 
+import os
+
 # The "evolution" arc: the visual idiom evolves with the civilization.
 STYLE_BASES = {
     "tang": (
@@ -187,6 +189,29 @@ VIDEO_ASPECT_SUPPORT = {
 def _aspect_value(aspect):
     w, h = aspect.split(":")
     return float(w) / float(h)
+
+
+def resolve_video_model(aspect="16:9", project_model=None):
+    """Aspect-to-video-model mapping, explicitly configurable (no guessing).
+
+    Priority: beats.json `video_model` (project-level, highest) >
+    env VIDEO_MODEL_PORTRAIT / VIDEO_MODEL_LANDSCAPE (framing-specific) >
+    env VIDEO_MODEL (generic default) > script constant.
+
+    Portrait (9:16) defaults to agnes-video-v2.0 (native portrait, follows the
+    input keyframe; no distortion, no pad). Landscape defaults to
+    grok-imagine-video (Grok2API, explicit aspect/resolution).
+    """
+    if project_model:
+        return project_model
+    w, h = aspect.split(":")
+    if float(w) / float(h) < 1.0:              # portrait target
+        return (os.environ.get("VIDEO_MODEL_PORTRAIT")
+                or os.environ.get("VIDEO_MODEL")
+                or "agnes-video-v2.0")
+    return (os.environ.get("VIDEO_MODEL_LANDSCAPE")
+            or os.environ.get("VIDEO_MODEL")
+            or "grok-imagine-video")
 
 
 def resolve_video_aspect(project_aspect, model):

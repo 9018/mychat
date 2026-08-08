@@ -187,6 +187,14 @@ GROK2API_KEY    = g2a_...(Grok2API 控制台签发的 Client Key,无默认)
 - **默认 grok 链实测(全默认走 grok)**: `grok-imagine-image`(直连 Grok2API)关键帧 → `grok-imagine-video`(直连 `/v1/videos/generations`,data URI 图生视频)→ 720p mp4 → `mimo-v2.5-tts` 旁白 → assemble → **final.mp4(1920×1080, 4s)** ✓
 - **grok 视频出口节点注意**: 图生视频任务完成需 Grok2API 的 `grok_console` 出口节点(`no grok_console 出口节点` 报错 = 该节点不可用,任务会 failed/卡 99%;用户侧恢复后任务会自动补完)。大视频下载经 socks5 代理较慢,`download()` 超时已放宽到 600s。
 
+### 画幅→视频模型显式映射(2026-08-09 新增)
+
+优先级:beats.json `video_model`(项目显式)> env `VIDEO_MODEL_PORTRAIT`/`VIDEO_MODEL_LANDSCAPE`(按画幅)> env `VIDEO_MODEL` > 脚本常量。
+竖版(9:16)默认 `VIDEO_MODEL_PORTRAIT`;**横版(16:9)默认 `VIDEO_MODEL_LANDSCAPE`**(纯 16:9 输出,不转竖)。
+> 金律:输入关键帧比例必须匹配输出画幅(grok 不缩放不补边,比例不符 = 内容被拉伸);竖版成片已实测
+> `grok-imagine-video 720p + 9:16` → 720×1280 原生竖屏(2026-08-09 修复 clips.py 丢参 bug 后)。
+> 若立版默认用原生模型 agnes-video-v2.0,则 `.env` 设 `VIDEO_MODEL_PORTRAIT=agnes-video-v2.0`。
+
 ### 全局默认模型(.env 显式配置,2026-08-08 新增)
 
 ```

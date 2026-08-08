@@ -12,7 +12,7 @@ import os
 import sys
 
 from provider import get_provider, run_jobs
-from styles import resolve_theme, resolve_video_aspect
+from styles import resolve_theme, resolve_video_aspect, resolve_video_model, resolve_video_model
 
 VIDEO_MODEL = os.environ.get("VIDEO_MODEL", "grok-imagine-video")  # .env 全局默认;Grok2API direct, needs GROK2API_BASE+KEY
 
@@ -108,7 +108,7 @@ def run(project_dir, only=None):
     _theme = resolve_theme(doc.get("theme")) or {}
     motion_style = doc.get("motion_style") or _theme.get("motion_style", "punchy")  # calm|punchy|max
     constraints = doc.get("constraints", "strict")   # strict = defect guards on | loose = explore
-    model = doc.get("video_model", VIDEO_MODEL)   # Seedance for real people; Omni otherwise
+    model = doc.get("video_model") or resolve_video_model(aspect)  # beats > env-by-aspect > env > default
     vid_res = doc.get("video_resolution", "720p")  # 720p default; Seedance also 480p/1080p (Omni is 720p-only)
     clip_dir = os.path.join(project_dir, "clips")
     os.makedirs(clip_dir, exist_ok=True)
@@ -165,12 +165,12 @@ def run(project_dir, only=None):
                 params = dict(image=url, duration=dur, aspect_ratio=aspect, sound=False)
             elif "kling" in model:                   # image-to-video / video-edit: follows input; allows real people
                 params = dict(image=url, duration=dur, sound=False)
-            elif "grok" in model:                  # Grok2API v3.1.1: explicit aspect/resolution
+            elif "grok" in model:                  # Grok-API v3.1.1: explicit aspect/resolution
                 params = dict(image=url, duration=dur, aspect_ratio=aspect, resolution=vid_res)
-            # gateway bare image-to-video (agnes-video): follows the input
-            # keyframe's aspect; `duration` seconds since upstream maps sizes
-            # to presets and keeps num_frames = 8*n+1 internally.
-            params = dict(image=url, duration=dur)
+            else:                                  # gateway bare image-to-video (agnes-*):
+                # follows the input keyframe's aspect; `duration` seconds since
+                # upstream maps sizes to presets and keeps num_frames = 8*n+1.
+                params = dict(image=url, duration=dur)
             specs[key] = (lambda m=model, p=prompt, pr=params: prov.submit_video(m, p, **pr))
             by_key[key] = shot
             print(f"[{key}] queued ({dur}s, {model})")

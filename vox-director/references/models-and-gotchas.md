@@ -126,3 +126,19 @@ accepted at submission (16:9 or 9:16) but every job FAILS at execution with
 "grok-imagine-video 仅支持 480p 或 720p" until a 1080p-capable grok exit node
 is configured admin-side. Practical ceiling today: **720p**. Deliver bigger
 via `scripts/upscale.py` (explicit `video_scale`/`VIDEO_SCALE`).
+
+## grok-imagine-video portrait mode (Verified 2026-08-09, bug fix)
+
+`aspect_ratio=9:16` + `resolution=720p` WORKS — output is native **720x1280**
+portrait, content fills the frame (99%+ pixels, no distortion). Earlier
+"Grok ignores 9:16 / stretches vertical artwork" observations were a **client
+bug**: `scripts/clips.py` had a stray `params = dict(image=url, duration=dur)`
+outside the if/elif chain that silently overwrote the grok branch's
+`aspect_ratio`/`resolution`. Fixed 2026-08-09; grok now gets its real params.
+
+**Golden rule: input keyframe aspect must match the requested output aspect**
+(grok does not fit/pad — it stretches the input onto the canvas). 9:16 project
++ 9:16 ask = native portrait; 9:16 project + 16:9 ask = stretched fat content.
+
+Status strings: `done` (normalize→`completed` with content URL), also observe
+raw `completed` from the API poll — treat both as finished.
