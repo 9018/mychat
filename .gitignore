@@ -16,3 +16,4 @@ config.json.bak
 mkcert_bin
 vox-director/out/
 vox-director/_seg*
+OpenMontage/assets/*.mp4
