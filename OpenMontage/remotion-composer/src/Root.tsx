@@ -209,6 +209,25 @@ export const Root: React.FC = () => {
         }}
         calculateMetadata={calculateTitledVideoMetadata}
       />
+      {/* 竖版 9:16 标题卡(vox-director 竖屏成片 + Remotion 标题层) */}
+      <Composition
+        id="TitledVideoVertical"
+        component={TitledVideo}
+        durationInFrames={30 * 60}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          videoSrc: "",
+          tagline: "",
+          taglineInSeconds: 2,
+          taglineOutSeconds: undefined,
+          topPx: 300,
+          fontSize: 110,
+          accentColor: "#F5C470",
+        }}
+        calculateMetadata={calculateTitledVideoMetadata}
+      />
       <Composition
         id="HeroTitle"
         component={HeroTitle}

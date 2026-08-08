@@ -226,23 +226,30 @@ export const TitledVideo: React.FC<TitledVideoProps> = ({
 // calculateMetadata — probe the source clip so the composition runs at the
 // clip's native duration. Falls back to 60s at 30fps if probing fails.
 // ---------------------------------------------------------------------------
+// width (1920x1080 landscape default; pass {vertical: true} from the portrait
+// composition to override — same metadata, portrait canvas)
 export const calculateTitledVideoMetadata: CalculateMetadataFunction<
   TitledVideoProps
-> = async ({ props }) => {
+> = async ({ props, compositionId }) => {
+  // Portrait composition (TitledVideoVertical) renders 1080x1920; the
+  // landscape default stays 1920x1080.
+  const portrait = compositionId === "TitledVideoVertical";
+  const w = portrait ? 1080 : 1920;
+  const h = portrait ? 1920 : 1080;
   try {
     const meta = await getVideoMetadata(resolveAsset(props.videoSrc));
     return {
       durationInFrames: Math.max(1, Math.round(meta.durationInSeconds * 30)),
       fps: 30,
-      width: 1920,
-      height: 1080,
+      width: w,
+      height: h,
     };
   } catch {
     return {
       durationInFrames: 30 * 60,
       fps: 30,
-      width: 1920,
-      height: 1080,
+      width: w,
+      height: h,
     };
   }
 };
