@@ -118,3 +118,11 @@ bursts. Workarounds shipped:
 fallback constants (`keyframes.py`, `style_bakeoff.py`, `clips.py`, `audio.py`).
 Priority: beats.json per-project (`image_model`/`video_model`/`voice`) >
 env global > script constant. Set them in the repo root `.env`.
+
+## grok-imagine-video resolution ceiling (Verified 2026-08-09)
+
+Grok2API validates `resolution`: "must be 480p, 720p or 1080p" — `1080p` is
+accepted at submission (16:9 or 9:16) but every job FAILS at execution with
+"grok-imagine-video 仅支持 480p 或 720p" until a 1080p-capable grok exit node
+is configured admin-side. Practical ceiling today: **720p**. Deliver bigger
+via `scripts/upscale.py` (explicit `video_scale`/`VIDEO_SCALE`).
