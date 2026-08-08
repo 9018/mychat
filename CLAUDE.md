@@ -193,7 +193,8 @@ GROK2API_KEY    = g2a_...(Grok2API 控制台签发的 Client Key,无默认)
 竖版(9:16)默认 `VIDEO_MODEL_PORTRAIT`;**横版(16:9)默认 `VIDEO_MODEL_LANDSCAPE`**(纯 16:9 输出,不转竖)。
 > 金律:输入关键帧比例必须匹配输出画幅(grok 不缩放不补边,比例不符 = 内容被拉伸);竖版成片已实测
 > `grok-imagine-video 720p + 9:16` → 720×1280 原生竖屏(2026-08-09 修复 clips.py 丢参 bug 后)。
-> 若立版默认用原生模型 agnes-video-v2.0,则 `.env` 设 `VIDEO_MODEL_PORTRAIT=agnes-video-v2.0`。
+> 当前默认:竖版 `VIDEO_MODEL_PORTRAIT=grok-imagine-video`(同比例竖出,720×1280 实测);
+> 备选原生竖版模型 `agnes-video-v2.0` 显式切。
 
 ### 全局默认模型(.env 显式配置,2026-08-08 新增)
 
