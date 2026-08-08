@@ -138,7 +138,16 @@ In **production mode** (`NODE_ENV=production`), the backend also serves `fronten
 
 `vox-director/` 是从 [9018/vox-director](https://github.com/9018/vox-director)(fork 自 Alisa0808,Atlas Cloud 版)改造而来的**自有流水线**:不做 Atlas 兼容,媒体调用全部改为走本项目的 **自托管 OpenAI 兼容网关**(newapi)。
 
-### 网关连接(与网关面板共用;网络均为显性配置,无硬编码猜测)
+### 零重编码硬性纪律(宿主稳定性,2026-08-09)
+
+宿主在 x264/Remotion 重编码风暴下强制重启 VM(已多次实测):任何成片交付一律
+**零重编码**——`scripts/assemble_lite.py`(视频 `-c copy` concat + 音频
+filter_complex,约 1.3s)。upscale 默认 `FFMPEG_THREADS=4`。Remotion 渲染
+同样危险:**禁止全量渲染**——必须分段(≤10s/段)、并发 ≤2、段间冷却,
+再用 `ffmpeg -f concat -c copy +faststart` 拼接(2026-08-09 60s/1080p/
+并发4 全片渲染实测触发硬重启,分段后 6/6 段顺利出片)。
+
+### 网关连接（与网关面板统一;网络均为显性配置,无硬编码猜测)
 
 ```
 OPENAI_API_KEY  = AGNES_API_KEY(见 .env,即网关 sk- 密钥;新网关 10.0.1.108:18901 与该 key 互通)
