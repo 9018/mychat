@@ -226,6 +226,7 @@ class GrokVideo(BaseTool):
             )
 
         import requests
+        from lib import xai_compat as xc
         from tools.video._shared import probe_output
 
         start = time.time()
@@ -237,10 +238,11 @@ class GrokVideo(BaseTool):
         try:
             payload = self._build_payload(inputs)
             response = requests.post(
-                "https://api.x.ai/v1/videos/generations",
+                xc.api_base() + "/v1/videos/generations",
                 headers=headers,
                 json=payload,
-                timeout=60,
+                proxies=xc.proxies(),
+                timeout=120,
             )
             response.raise_for_status()
             request_id = response.json()["request_id"]
@@ -252,8 +254,9 @@ class GrokVideo(BaseTool):
             result_data: dict[str, Any] | None = None
             while time.time() < deadline:
                 result = requests.get(
-                    f"https://api.x.ai/v1/videos/{request_id}",
+                    f"{xc.api_base()}/v1/videos/{request_id}",
                     headers={"Authorization": headers["Authorization"]},
+                    proxies=xc.proxies(),
                     timeout=30,
                 )
                 result.raise_for_status()
@@ -273,7 +276,10 @@ class GrokVideo(BaseTool):
             if not video_url:
                 return ToolResult(success=False, error="xAI video output missing url")
 
-            download = requests.get(video_url, timeout=300)
+            dl_url, need_auth = xc.media_url(video_url)
+            dl_headers = {"Authorization": headers["Authorization"]} if need_auth else None
+            download = requests.get(dl_url, headers=dl_headers,
+                                    proxies=xc.proxies(), timeout=600)
             download.raise_for_status()
             output_path = Path(inputs.get("output_path", "grok_video_output.mp4"))
             output_path.parent.mkdir(parents=True, exist_ok=True)

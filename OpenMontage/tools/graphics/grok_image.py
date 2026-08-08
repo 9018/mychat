@@ -5,6 +5,8 @@ from __future__ import annotations
 import base64
 import mimetypes
 import os
+
+from lib import xai_compat as xc
 import time
 from pathlib import Path
 from typing import Any
@@ -183,7 +185,7 @@ class GrokImage(BaseTool):
             mode = "edit"
 
         if mode == "edit":
-            endpoint = "https://api.x.ai/v1/images/edits"
+            endpoint = xc.api_base() + "/v1/images/edits"
             if primary_image and not extra_images:
                 payload["image"] = primary_image
             else:
@@ -197,7 +199,7 @@ class GrokImage(BaseTool):
                     )
                 payload["images"] = images
         else:
-            endpoint = "https://api.x.ai/v1/images/generations"
+            endpoint = xc.api_base() + "/v1/images/generations"
 
         return endpoint, payload
 
@@ -237,6 +239,7 @@ class GrokImage(BaseTool):
             endpoint, payload = self._build_payload(inputs)
             response = requests.post(
                 endpoint,
+                proxies=xc.proxies(),
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
@@ -268,7 +271,10 @@ class GrokImage(BaseTool):
                     image_url = item.get("url")
                     if not image_url:
                         return ToolResult(success=False, error="xAI image output missing url")
-                    download = requests.get(image_url, timeout=120)
+                    dl_url, dl_auth = xc.media_url(image_url)
+                    dl_headers = {"Authorization": f"Bearer {api_key}"} if dl_auth else None
+                    download = requests.get(dl_url, headers=dl_headers,
+                                            proxies=xc.proxies(), timeout=180)
                     download.raise_for_status()
                     output_path.write_bytes(download.content)
                 artifacts.append(str(output_path))
