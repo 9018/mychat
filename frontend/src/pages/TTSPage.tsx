@@ -20,6 +20,18 @@ function AudioPlayer({ audioData, format }: { audioData: ArrayBuffer | null; for
     return () => URL.revokeObjectURL(objUrl)
   }, [audioData, format])
 
+  const handleDownload = () => {
+    if (!url || !audioData) return
+    const ext = format === 'mp3' ? '.mp3' : '.wav'
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tts-${ts}${ext}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   useEffect(() => {
     if (!url) return
     const audio = new Audio(url)
@@ -36,6 +48,12 @@ function AudioPlayer({ audioData, format }: { audioData: ArrayBuffer | null; for
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span style={{ fontSize: 13, color: 'var(--text-soft)' }}>Generated Audio</span>
         {duration > 0 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{duration.toFixed(1)}s</span>}
+        <button onClick={handleDownload} style={{
+          background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)',
+          padding: '2px 8px', fontSize: 11, cursor: 'pointer', color: 'var(--text-soft)', fontFamily: 'inherit'
+        }}>
+          ⬇ 下载
+        </button>
       </div>
       <audio src={url} controls controlsList="nodownload" style={{ width: '100%', display: 'block' }} />
     </div>

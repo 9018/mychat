@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""
+Style bake-off: render ONE representative beat in several candidate collage styles so
+the user can pick the visual idiom before committing the whole film.
+
+Hybrid selection: Claude reads the topic and chooses which idioms to try (names from
+styles.STYLE_LIBRARY, or a custom idiom string), matching the topic's era/culture/tone —
+don't default to Chinese motifs for a Western topic. Then the human picks by eye.
+
+Usage:
+  python3 style_bakeoff.py <project_dir> [style1,style2,...] [beat_index]
+Defaults: the 4 Western library styles, beat 0. Output -> <project>/style-bakeoff/<style>.jpg
+Then set  "collage_style": "<pick>"  in beats.json, clear old keyframe_url/path, re-run keyframes.
+"""
+import json
+import os
+import sys
+
+from provider import get_provider
+from styles import compose_collage_prompt, STYLE_LIBRARY, THEME_PRESETS, resolve_theme, image_params
+
+IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "grok-imagine-image-quality")  # .env 全局默认;alt: grok-imagine-image / agnes-image-2.1-flash
+# candidates are THEME names (full look bundles); Claude picks topic-fitting ones
+DEFAULT_CANDIDATES = ["american-retro", "swiss-modern", "punk-zine", "atomic-age"]
+
+
+def first_shot(beat):
+    return beat["shots"][0] if beat.get("shots") else beat
+
+
+def run(project_dir, styles=None, beat_index=0):
+    styles = styles or DEFAULT_CANDIDATES
+    with open(os.path.join(project_dir, "beats.json")) as f:
+        doc = json.load(f)
+    aspect = doc.get("aspect", "16:9")
+    img_model = doc.get("image_model", IMAGE_MODEL)
+    img_res = doc.get("image_resolution", "1k")
+    beat = doc["beats"][beat_index]
+    shot = first_shot(beat)
+    scene, bg = shot["scene"], beat.get("bg", "warm ochre")
+    tcn, ten = beat.get("title_cn", ""), beat.get("title_en", "")
+    out = os.path.join(project_dir, "style-bakeoff"); os.makedirs(out, exist_ok=True)
+
+    prov = get_provider(doc.get("provider"))
+    # image generation is SYNCHRONOUS on this gateway (returns the asset URL) —
+    # submit + download one at a time, no polling.
+    for name in styles:
+        tp = resolve_theme(name) or {}              # theme name -> full look bundle
+        prompt = compose_collage_prompt(scene, tcn, ten, bg, aspect,
+                                        style=tp.get("idiom", name), palette=tp.get("palette"),
+                                        type_style=tp.get("type_style"), finish=tp.get("finish"))
+        tag = "library" if name in STYLE_LIBRARY else "custom"
+        print(f"[{name}] ({tag}) generating…", flush=True)
+        url = prov.submit_image(img_model, prompt, **image_params(img_model, aspect, img_res))
+        prov.download(url, os.path.join(out, f"{name}.jpg"))
+        print(f"[{name}] saved")
+    print(f"\nsaved candidates to {out} — review, then set \"collage_style\" in beats.json.")
+
+
+if __name__ == "__main__":
+    proj = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else
+                           os.path.join(os.path.dirname(__file__), "..", "out", "money-60s"))
+    styles = sys.argv[2].split(",") if len(sys.argv) > 2 else None
+    bi = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    run(proj, styles, bi)

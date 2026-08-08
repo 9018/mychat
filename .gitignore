@@ -14,3 +14,5 @@ history.json
 config.json.bak
 *.swp
 mkcert_bin
+vox-director/out/
+vox-director/_seg*

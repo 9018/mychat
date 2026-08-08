@@ -1,26 +1,42 @@
 {
-  "baseUrl": "http://www.9017i.cc:58901/v1",
-  "videoModel": "agnes-video-v2.0",
-  "imageModel": "agnes-image-2.1-flash",
+  "baseUrl": "http://10.0.1.108:18901/v1",
+  "upstreamProxy": "socks5h://192.168.99.3:1080",
+  "videoModel": "grok-imagine-video",
+  "imageModel": "grok-imagine-image-quality",
   "chatModel": "agnes-2.0-flash",
   "modelList": [
     {
-      "id": "gpt-image-2",
+      "id": "agnes-video-v2.0",
+      "types": [
+        "video"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "agnes-image-2.1-flash",
       "types": [
         "image"
       ],
       "enabled": true
     },
     {
-      "id": "xiaomi/mimo-v2.5",
+      "id": "grok-imagine-image",
       "types": [
-        "chat"
+        "image"
       ],
       "enabled": true
     },
     {
-      "id": "minimax/minimax-m3",
+      "id": "grok-imagine-image-quality",
       "types": [
+        "image"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "agnes-2.0-flash",
+      "types": [
+        "image",
         "chat"
       ],
       "enabled": true
@@ -33,7 +49,50 @@
       "enabled": true
     },
     {
-      "id": "agnes-image-2.1-flash",
+      "id": "mimo-v2.5-free",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "grok-4.5",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "mimo-v2.5-tts",
+      "types": [
+        "other"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "mimo-v2.5-tts-voicedesign",
+      "types": [
+        "other"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "mimo-v2.5-tts-voiceclone",
+      "types": [
+        "other"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "grok-imagine-video",
+      "types": [
+        "video"
+      ],
+      "enabled": true,
+      "note": "走 Grok2API 直连 /v1/videos/generations(需 GROK2API_BASE/KEY),实测可用"
+    },
+    {
+      "id": "gpt-image-2",
       "types": [
         "image"
       ],
@@ -47,27 +106,28 @@
       "enabled": true
     },
     {
+      "id": "gpt-5.6-luna",
+      "types": [
+        "chat"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "xiaomi/mimo-v2.5",
+      "types": [
+        "chat"
+      ],
+      "enabled": false,
+      "note": "provider 返回 empty response content"
+    },
+    {
       "id": "deepseek/deepseek-v4-flash",
       "types": [
         "chat"
       ],
-      "enabled": true
-    },
-    {
-      "id": "agnes-2.0-flash",
-      "types": [
-        "image",
-        "chat"
-      ],
-      "enabled": true
-    },
-    {
-      "id": "agnes-video-v2.0",
-      "types": [
-        "video"
-      ],
-      "enabled": true
+      "enabled": false,
+      "note": "403: 仅限 Cline 产品面"
     }
   ],
-  "modelListUpdatedAt": "2026-06-12T16:16:46.467Z"
+  "modelListUpdatedAt": "2026-08-08T02:20:00.000Z"
 }

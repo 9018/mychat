@@ -131,3 +131,78 @@ In **production mode** (`NODE_ENV=production`), the backend also serves `fronten
 - **No state management library**: React Context + useReducer sufficient for this complexity level
 - **TypeScript interfaces** in `src/api/types.ts` shared across all frontend modules
 - **Vite proxy** in development: all `/api/*`, `/v1/*`, `/agnesapi/*` requests forwarded to backend
+
+---
+
+## Vox Director 自有 AI 视频导演流水线(2026-08-08 改造标准)
+
+`vox-director/` 是从 [9018/vox-director](https://github.com/9018/vox-director)(fork 自 Alisa0808,Atlas Cloud 版)改造而来的**自有流水线**:不做 Atlas 兼容,媒体调用全部改为走本项目的 **自托管 OpenAI 兼容网关**(newapi)。
+
+### 网关连接(与网关面板共用;网络均为显性配置,无硬编码猜测)
+
+```
+OPENAI_API_KEY  = AGNES_API_KEY(见 .env,即网关 sk- 密钥;新网关 10.0.1.108:18901 与该 key 互通)
+OPENAI_BASE_URL = http://10.0.1.108:18901/v1   (ai_cloud.py 默认值)
+UPSTREAM_PROXY  = socks5h://192.168.99.3:1080  (必需:10.0.1.108 网段只能经此 SOCKS5 访问;
+                   后端读 config.json 的 upstreamProxy 或 env,转发走 curl)
+GROK2API_BASE   = http://10.0.1.108:8000       (grok-imagine-* 媒体服务,无默认)
+GROK2API_KEY    = g2a_...(Grok2API 控制台签发的 Client Key,无默认)
+```
+
+> 注:192.168.99.4:18901 网关已弃用。Grok2API 管理端点(经 login 会话)从 JS bundle
+> 反查得 `/api/admin/v1/auth/login`、`/api/admin/v1/client-keys`;媒体下载为
+> `/v1/media/images/<id>` + `Authorization: Bearer <client-key>`。
+
+### 模型映射(2026-08-08 对网关逐 endpoint 实测)
+
+| 流水线阶段 | 模型 | 实测状态 |
+|---|---|---|
+| 剧本 / beats 规划 | `deepseek-v4-flash-free` / `agnes-2.0-flash` | ✅(mimo-v2.5-free 可用,内容在 reasoning) |
+| 拼贴海报关键帧 | `agnes-image-2.1-flash` | ✅ 参数 `size`;输出公网可下载 URL |
+| 海报动效(图生视频) | `agnes-video-v2.0` | ✅ `duration` 秒、`image` 支持 base64、跟随输入比例,`GET /videos/{id}` 轮询 |
+| 旁白 | `mimo-v2.5-tts` | ✅ chat/completions 音频协议(同步返回 base64) |
+| 音色设计 | `mimo-v2.5-tts-voicedesign` | ✅ `voice.voice_desc` 描述 |
+| 声音克隆 | `mimo-v2.5-tts-voiceclone` | ✅ `voice.clone_ref` 本地样本 → data URI |
+| 配乐 | ❌ 无 | 用 `bgm_file`(本地曲)或无 BGM |
+| STT(A-roll) / 抠图 / image-edit(C-roll) | ❌ 无 | A-roll、C-roll 模式已禁用(脚本报错提示) |
+| `grok-imagine-image(-quality)` | ✅ **已打通** | 生成 → Grok2API 取回 base64 data URI;实测可喂视频模型 |
+| `grok-imagine-video` | ✅ **已打通**(Grok2API 直连) | 网关 18901 的 /v1/videos 仍 404,故客户端直连 Grok2API `/v1/videos/generations`(v3.1.1 协议:request_id 轮询 pending/done/failed,image 需 `{"url"}` 对象,data URI 实测可用);实测 720p 4s 出片 |
+| `grok-4.5` | ✅ chat | 新网关实测可用 |
+| `gpt-image-2` | ✅ **已打通** | 返回 b64_json 直接可用;实测:关键帧 → base64 → agnes-video-v2.0 图生视频 mp4 |
+| `gpt-5.5` / `gpt-5.6-luna` | ✅ chat | codex 渠道修复后实测可用 |
+| `xiaomi/mimo-v2.5` | ❌ | provider 返回 empty response content |
+| `deepseek/deepseek-v4-flash` | ❌ | 403(Cline 专用) |
+
+### 代码改动(相对上游)
+
+- 新增 `scripts/ai_cloud.py`(OpenAI 兼容客户端:chat / images / videos / TTS / 下载),删除 `atlas_cloud.py`。
+- `scripts/provider.py` 重写:`OpenAIProvider`(beats.json `"provider": "openai"`),图片改为**同步提交下载**(网关无异步任务),视频仍走 `submit + run_jobs 轮询`(失败自动重试)。
+- `scripts/keyframes.py` / `style_bakeoff.py`:同步生成;`clips.py`:默认 `agnes-video-v2.0`(base64 图 + duration);`audio.py`:MiMo TTS 三模型 + 无 BGM 降级;`assemble.py`:无 BGM 分支;`asr_beats.py` / `croll_keyframes.py`: 网关不可用,明确报错。
+- 文档:`SKILL.md`(zh/en)、`AGENTS.md`、`references/`(models-and-gotchas 全量重写、voices 换 MiMo 表)、README(zh/en)、示例 beats 音色改 `mimo_default`;`vox-director.skill` 已重新打包(含全部改动)。
+- `ai_cloud.py` 的 HTTP 层统一走 `_http_request()`:有 `UPSTREAM_PROXY` 时经 curl 走 SOCKS5(流式 SSE 也兼容),无代理时 urllib 零依赖。
+
+### 端到端已验证(2026-08-08)
+
+- 基础: `style_bakeoff → keyframes → clips → audio → assemble` 跑通(1 拍 3s 成片,无 BGM),输出 `out/<project>/final.mp4`。
+- **默认 grok 链实测(全默认走 grok)**: `grok-imagine-image`(直连 Grok2API)关键帧 → `grok-imagine-video`(直连 `/v1/videos/generations`,data URI 图生视频)→ 720p mp4 → `mimo-v2.5-tts` 旁白 → assemble → **final.mp4(1920×1080, 4s)** ✓
+- **grok 视频出口节点注意**: 图生视频任务完成需 Grok2API 的 `grok_console` 出口节点(`no grok_console 出口节点` 报错 = 该节点不可用,任务会 failed/卡 99%;用户侧恢复后任务会自动补完)。大视频下载经 socks5 代理较慢,`download()` 超时已放宽到 600s。
+
+### 全局默认模型(.env 显式配置,2026-08-08 新增)
+
+```
+IMAGE_MODEL=grok-imagine-image-quality   # keyframes / style_bakeoff 默认
+VIDEO_MODEL=grok-imagine-video           # clips 默认
+VOICE_MODEL=mimo-v2.5-tts                # audio 旁白默认
+```
+
+优先级:**beats.json 项目级字段(image_model/video_model/voice)> .env(全局默认)> 脚本常量(fallback)**。
+改全局默认只动 `.env`;单项目覆盖写 `beats.json`;脚本常量是最后兜底。
+
+### 环境变量
+
+```bash
+cd vox-director
+export OPENAI_API_KEY="sk-..."                       # 网关密钥(与 .env 同款)
+export UPSTREAM_PROXY="socks5h://192.168.99.3:1080"  # 本网络必需(显式)
+python3 scripts/keyframes.py out/<project>           # 即可逐个 stage 跑
+```
