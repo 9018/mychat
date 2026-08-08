@@ -119,7 +119,7 @@ Component hierarchy:
 | GET | `/video-proxy?url=` | Video proxy for Google Cloud Storage (firewall bypass) |
 | * | `/v1/*` | Reverse proxy to AI API (with Bearer token + keepAlive) |
 | * | `/agnesapi/*` | Reverse proxy for video status queries |
-| GET | `/outputs/*` | Static file serving for cached media |
+| GET | `/outputs/*` | Static file serving for cached media(**支持 HTTP Range/206**,浏览器与移动端视频播放必需;2026-08-09 修复) |
 
 In **production mode** (`NODE_ENV=production`), the backend also serves `frontend/dist/` as static SPA.
 
