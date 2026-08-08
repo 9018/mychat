@@ -1,8 +1,10 @@
 # OpenMontage - Global Configuration
 
 llm:
-  provider: anthropic            # anthropic | openai | gemini | openrouter | ollama | mistral | minimax
-  model: null                    # null = use provider default
+  provider: openai               # anthropic | openai | gemini | openrouter | ollama | mistral | minimax
+  model: deepseek-v4-flash-free  # self-hosted gateway (10.0.1.108:18901); null = provider default
+  base_url: null                 # null -> OPENAI_BASE_URL env (显式配置)
+  api_key_env: AGNES_API_KEY     # gateway sk- key (repo .env); alias OPENAI_API_KEY
   temperature: 0.7
   max_tokens: 4096
 

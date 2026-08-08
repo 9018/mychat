@@ -28,6 +28,8 @@ class CheckpointPolicy(str, Enum):
 class LLMConfig(BaseModel):
     provider: str = "anthropic"
     model: Optional[str] = None
+    base_url: Optional[str] = None   # explicit OpenAI-compatible endpoint
+    api_key_env: Optional[str] = "AGNES_API_KEY"   # env var holding the key
     temperature: float = 0.7
     max_tokens: int = 4096
 
