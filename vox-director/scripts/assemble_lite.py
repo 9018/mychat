@@ -59,6 +59,9 @@ def run(project_dir):
     ff([*inputs, "-filter_complex", fc, "-map", "0:v", "-map", "[a]",
         "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", final])
     print("FINAL:", final)
+    # optional post upscale (explicit: beats.json `video_scale` or env VIDEO_SCALE)
+    import upscale
+    upscale.run(project_dir)
 
 
 if __name__ == "__main__":

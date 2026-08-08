@@ -193,6 +193,7 @@ GROK2API_KEY    = g2a_...(Grok2API 控制台签发的 Client Key,无默认)
 IMAGE_MODEL=grok-imagine-image-quality   # keyframes / style_bakeoff 默认
 VIDEO_MODEL=grok-imagine-video           # clips 默认
 VOICE_MODEL=mimo-v2.5-tts                # audio 旁白默认
+VIDEO_SCALE=1080p                    # 后处理放大(缺省=不放大;480p/720p 透传)
 ```
 
 优先级:**beats.json 项目级字段(image_model/video_model/voice)> .env(全局默认)> 脚本常量(fallback)**。
