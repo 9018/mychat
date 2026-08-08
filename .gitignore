@@ -17,3 +17,4 @@ mkcert_bin
 vox-director/out/
 vox-director/_seg*
 OpenMontage/assets/*.mp4
+OpenMontage/env
