@@ -19,8 +19,34 @@ function register(router) {
         '.gif': 'image/gif',
       };
       const contentType = contentTypeMap[ext] || 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': contentType });
-      fs.createReadStream(filePath).pipe(res);
+      const stat = fs.statSync(filePath);
+      const range = req.headers.range;
+      if (range) {
+        // HTTP Range (浏览器/播放器拖动与分段加载必需)
+        const m = /bytes=(\d*)-(\d*)/.exec(range);
+        let start = m && m[1] !== '' ? parseInt(m[1], 10) : 0;
+        let end = m && m[2] !== '' ? parseInt(m[2], 10) : stat.size - 1;
+        if (isNaN(start) || start < 0) start = 0;
+        if (isNaN(end) || end >= stat.size) end = stat.size - 1;
+        if (start > end) {
+          res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` });
+          return res.end();
+        }
+        res.writeHead(206, {
+          'Content-Type': contentType,
+          'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': end - start + 1,
+        });
+        fs.createReadStream(filePath, { start, end }).pipe(res);
+      } else {
+        res.writeHead(200, {
+          'Content-Type': contentType,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': stat.size,
+        });
+        fs.createReadStream(filePath).pipe(res);
+      }
     } else {
       res.writeHead(404);
       res.end('Not found');
