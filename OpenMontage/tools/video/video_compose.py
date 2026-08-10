@@ -53,6 +53,80 @@ from tools.base_tool import (
 )
 
 
+def normalize_resource_policy(options: dict[str, Any] | None) -> dict[str, int]:
+    """Bound local render fan-out to predictable disk/CPU usage."""
+    options = options or {}
+    try:
+        max_segment_seconds = int(options.get("max_segment_seconds", 10))
+    except (TypeError, ValueError):
+        max_segment_seconds = 10
+    try:
+        concurrency = int(options.get("concurrency", 2))
+    except (TypeError, ValueError):
+        concurrency = 2
+    return {
+        "max_segment_seconds": min(max(1, max_segment_seconds), 10),
+        "concurrency": min(max(1, concurrency), 2),
+    }
+
+
+def split_cut_windows(cut: dict[str, Any], max_segment_seconds: int) -> list[dict[str, Any]]:
+    """Split long source cuts into bounded render windows without changing timeline."""
+    start = float(cut["in_seconds"])
+    end = float(cut["out_seconds"])
+    if end <= start:
+        return [dict(cut)]
+    windows: list[dict[str, Any]] = []
+    cursor = start
+    while cursor < end - 1e-9:
+        next_cursor = min(end, cursor + max_segment_seconds)
+        item = dict(cut)
+        item["in_seconds"] = round(cursor, 6)
+        item["out_seconds"] = round(next_cursor, 6)
+        windows.append(item)
+        cursor = next_cursor
+    return windows
+
+
+def build_render_report(output_path: str | Path, *, resource_policy: dict[str, int] | None = None,
+                        segment_strategy: str = "bounded_segments", stream_copy: bool = False) -> dict[str, Any]:
+    """Build the canonical render_report payload from the final media file."""
+    path = Path(output_path)
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    probe = subprocess.check_output([
+        "ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", str(path)
+    ], text=True)
+    data = json.loads(probe)
+    video = next((s for s in data.get("streams", []) if s.get("codec_type") == "video"), {})
+    audio = next((s for s in data.get("streams", []) if s.get("codec_type") == "audio"), {})
+    fmt = data.get("format", {})
+    duration = float(fmt.get("duration", 0) or 0)
+    fps = None
+    if video.get("r_frame_rate"):
+        num, den = video["r_frame_rate"].split("/")
+        fps = float(num) / float(den) if float(den) else None
+    output: dict[str, Any] = {
+        "path": str(path),
+        "format": path.suffix.lstrip(".") or "mp4",
+        "resolution": f"{video.get('width', 0)}x{video.get('height', 0)}",
+        "fps": fps,
+        "duration_seconds": duration,
+        "file_size_bytes": path.stat().st_size,
+        "ffprobe": {"streams": data.get("streams", []), "format": fmt},
+        "segment_strategy": segment_strategy,
+        "stream_copy": stream_copy,
+    }
+    if video.get("codec_name"):
+        output["codec"] = video["codec_name"]
+    if audio.get("codec_name"):
+        output["audio_codec"] = audio["codec_name"]
+    report: dict[str, Any] = {"version": "1.0", "outputs": [output]}
+    if resource_policy:
+        report["resource_policy"] = normalize_resource_policy(resource_policy)
+    return report
+
+
 class VideoCompose(BaseTool):
     name = "video_compose"
     version = "0.1.0"
@@ -187,6 +261,16 @@ class VideoCompose(BaseTool):
                 "properties": {
                     "subtitle_burn": {"type": "boolean", "default": True},
                     "two_pass_encode": {"type": "boolean", "default": False},
+                    "max_segment_seconds": {"type": "integer", "default": 10, "maximum": 10},
+                    "concurrency": {"type": "integer", "default": 2, "maximum": 2},
+                },
+            },
+            "resource_policy": {
+                "type": "object",
+                "description": "Bounded local render policy; values are clamped to safe limits.",
+                "properties": {
+                    "max_segment_seconds": {"type": "integer", "default": 10, "maximum": 10},
+                    "concurrency": {"type": "integer", "default": 2, "maximum": 2},
                 },
             },
             "codec": {"type": "string", "default": "libx264"},
@@ -502,12 +586,16 @@ class VideoCompose(BaseTool):
 
         temp_dir = output_path.parent / ".compose_tmp"
         temp_dir.mkdir(parents=True, exist_ok=True)
+        policy = normalize_resource_policy(inputs.get("resource_policy") or inputs.get("options"))
+        bounded_cuts: list[dict[str, Any]] = []
+        for cut in cuts:
+            bounded_cuts.extend(split_cut_windows(cut, policy["max_segment_seconds"]))
         temp_segments: list[Path] = []
         concat_path: Path | None = None
         concat_out: Path | None = None
 
         try:
-            for i, cut in enumerate(cuts):
+            for i, cut in enumerate(bounded_cuts):
                 source = Path(cut["source"])
                 if not source.exists():
                     return ToolResult(success=False, error=f"Cut source not found: {source}")
@@ -691,7 +779,10 @@ class VideoCompose(BaseTool):
                 # Use type-based selectors (0:v, 1:a) instead of index-based
                 # (0:v:0) because source videos may have audio as stream 0
                 # and video as stream 1 (e.g. Kling-generated clips).
-                cmd.extend(["-map", "0:v", "-map", "1:a", "-c:a", "aac", "-shortest"])
+                # Pad short narration with silence so replacing audio never
+                # truncates the approved video timeline; -shortest then ends
+                # at the video stream rather than the audio file.
+                cmd.extend(["-map", "0:v", "-map", "1:a", "-af", "apad", "-c:a", "aac", "-shortest"])
             else:
                 cmd.extend(["-c:a", "copy"])
 
@@ -702,7 +793,8 @@ class VideoCompose(BaseTool):
                 success=True,
                 data={
                     "operation": "compose",
-                    "cut_count": len(cuts),
+                    "cut_count": len(bounded_cuts),
+                    "resource_policy": policy,
                     "has_subtitles": subtitle_path is not None,
                     "has_mixed_audio": audio_path is not None,
                     "profile": profile_name,
@@ -833,7 +925,7 @@ class VideoCompose(BaseTool):
         """
 
         staged_by_source: dict[Path, str] = {}
-        media_keys = {"source", "src", "backgroundSrc"}
+        media_keys = {"source", "src", "backgroundSrc", "backgroundVideo", "backgroundImage"}
 
         def visit(node: Any, parent_key: str | None = None) -> Any:
             if isinstance(node, dict):
@@ -1551,6 +1643,15 @@ class VideoCompose(BaseTool):
                 resolved_cut["source"] = asset_lookup[source_id]["path"]
             resolved_cuts.append(resolved_cut)
 
+        # Bound long source windows before any runtime-specific renderer sees
+        # them. This keeps Remotion/FFmpeg/HyperFrames memory use predictable
+        # while preserving the exact source timeline.
+        render_policy = normalize_resource_policy(inputs.get("resource_policy") or inputs.get("options"))
+        bounded_resolved_cuts: list[dict[str, Any]] = []
+        for cut in resolved_cuts:
+            bounded_resolved_cuts.extend(split_cut_windows(cut, render_policy["max_segment_seconds"]))
+        resolved_cuts = bounded_resolved_cuts
+
         # --- Pre-compose validation gate ---
         scene_plan = inputs.get("scene_plan")
         validation_block = self._pre_compose_validation(edit_decisions, resolved_cuts, scene_plan)
@@ -1593,6 +1694,8 @@ class VideoCompose(BaseTool):
                 remotion_inputs["remotion_timeout_ms"] = inputs["remotion_timeout_ms"]
             if inputs.get("public_dir") is not None:
                 remotion_inputs["public_dir"] = inputs["public_dir"]
+            if inputs.get("resource_policy") is not None:
+                remotion_inputs["resource_policy"] = normalize_resource_policy(inputs["resource_policy"])
             render_result = self._remotion_render(remotion_inputs)
 
             # Governance: NEVER silently fall back to FFmpeg when Remotion fails.
@@ -1641,6 +1744,20 @@ class VideoCompose(BaseTool):
             render_result = self._compose(compose_inputs)
 
         # --- Post-render: mandatory final self-review ---
+        if render_result.success:
+            if render_result.data is None:
+                render_result.data = {}
+            render_result.data["resource_policy"] = render_policy
+            if output_path.exists():
+                try:
+                    render_result.data["render_report"] = build_render_report(
+                        output_path,
+                        resource_policy=render_policy,
+                        segment_strategy="bounded_segments",
+                        stream_copy=False,
+                    )
+                except (OSError, ValueError, subprocess.SubprocessError, json.JSONDecodeError):
+                    logging.getLogger("video_compose").warning("Could not build render_report", exc_info=True)
         if render_result.success and output_path.exists():
             final_review = self._run_final_review(
                 output_path,

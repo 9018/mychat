@@ -45,6 +45,9 @@ SUPPLEMENTARY_ARTIFACTS = {
     "source_media_review",  # Required before first planning stage when user media exists
     "final_review",         # Required by compose stage before presenting to user
     "video_analysis_brief", # Reference-video grounding artifact carried alongside stages
+    "motion_plan",           # Scene-level motion contract bound to creative treatment
+    "narration_visual_contract",  # Claim-level narration-to-visual contract
+    "semantic_qa_report",         # Claim-level evidence accumulated through compose
 }
 
 
@@ -95,24 +98,35 @@ class CheckpointValidationError(ValueError):
     """Raised when a checkpoint or its canonical artifacts are invalid."""
 
 
-def _validate_style_playbook(style_playbook: str | None) -> None:
+def _validate_style_id(style_id: str | None) -> None:
     """Fail closed when a checkpoint names a visual identity that cannot load."""
 
-    if style_playbook is None:
+    if style_id is None:
         return
-    try:
-        from styles.playbook_loader import list_playbooks, load_playbook
+    from styles.playbook_loader import list_playbooks, load_playbook
 
-        load_playbook(style_playbook)
-    except Exception as exc:
+    try:
+        load_playbook(style_id)
+        return
+    except Exception as legacy_exc:
+        # New executable Style Packages are project-lockable identities too.
+        # Keep legacy playbooks working, but allow a package only after its
+        # complete profile and director assets validate.
         try:
-            available = list_playbooks()
-        except Exception:
-            available = []
-        raise CheckpointValidationError(
-            f"Unknown or invalid style_playbook {style_playbook!r}. "
-            f"Available playbooks: {available}. Underlying error: {exc}"
-        ) from exc
+            from styles.style_registry import StyleRegistry
+
+            StyleRegistry().get(style_id)
+            return
+        except Exception as package_exc:
+            try:
+                available = list_playbooks()
+            except Exception:
+                available = []
+            raise CheckpointValidationError(
+                f"Unknown or invalid style_id {style_id!r}. "
+                f"Available legacy playbooks: {available}. "
+                f"Underlying legacy error: {legacy_exc}; package error: {package_exc}"
+            ) from package_exc
 
 
 @lru_cache(maxsize=1)
@@ -155,6 +169,42 @@ def _validate_artifacts_for_stage(
             raise CheckpointValidationError(
                 f"Artifact {artifact_name!r} failed schema validation: {exc}"
             ) from exc
+
+
+def _validate_project_treatment_binding(
+    pipeline_dir: Path,
+    project_id: str,
+    stage: str,
+    artifacts: dict[str, Any],
+) -> None:
+    """Require creative artifacts to carry the project's locked treatment hash."""
+    from lib.creative_treatment import (
+        ensure_artifact_treatment_binding,
+        ensure_hero_bakeoff_approval,
+        ensure_motion_plan_binding,
+        treatment_from_project,
+    )
+
+    treatment = treatment_from_project(pipeline_dir / project_id)
+    if treatment is None:
+        return
+    for artifact_name, artifact_data in artifacts.items():
+        if artifact_name in {"creative_treatment", "decision_log", "final_review"}:
+            continue
+        if not isinstance(artifact_data, dict):
+            continue
+        try:
+            ensure_artifact_treatment_binding(stage, artifact_data, treatment)
+        except Exception as exc:
+            raise CheckpointValidationError(str(exc)) from exc
+    try:
+        ensure_motion_plan_binding(stage, artifacts, treatment)
+    except Exception as exc:
+        raise CheckpointValidationError(str(exc)) from exc
+    try:
+        ensure_hero_bakeoff_approval(pipeline_dir / project_id, stage, treatment)
+    except Exception as exc:
+        raise CheckpointValidationError(str(exc)) from exc
 
 
 def validate_checkpoint(checkpoint: dict[str, Any]) -> None:
@@ -201,7 +251,7 @@ def init_project(
     title: str,
     pipeline_type: str,
     pipeline_dir: Optional[Path] = None,
-    style_playbook: Optional[str] = None,
+    style_id: Optional[str] = None,
 ) -> Path:
     """Initialize a project workspace with the canonical layout + marker file.
 
@@ -212,7 +262,7 @@ def init_project(
     Idempotent: re-running preserves the original created_at and merges fields.
     Returns the project directory.
     """
-    _validate_style_playbook(style_playbook)
+    _validate_style_id(style_id)
     base = pipeline_dir or PROJECTS_DIR
     project_dir = base / project_id
     for sub in (
@@ -239,8 +289,8 @@ def init_project(
     marker["project_id"] = project_id
     marker["title"] = title
     marker["pipeline_type"] = pipeline_type
-    if style_playbook is not None:
-        marker["style_playbook"] = style_playbook
+    if style_id is not None:
+        marker["style_id"] = style_id
 
     with open(marker_path, "w", encoding="utf-8") as f:
         json.dump(marker, f, indent=2)
@@ -427,7 +477,7 @@ def write_checkpoint(
     artifacts: dict[str, Any],
     *,
     pipeline_type: Optional[str] = None,
-    style_playbook: Optional[str] = None,
+    style_id: Optional[str] = None,
     checkpoint_policy: str = "guided",
     human_approval_required: bool = False,
     human_approved: bool = False,
@@ -441,7 +491,7 @@ def write_checkpoint(
     # cannot bypass either gate enforcement or style validation.
     marker = None
     marker_path = pipeline_dir / project_id / PROJECT_MARKER_FILENAME
-    if marker_path.exists() and (not pipeline_type or not style_playbook):
+    if marker_path.exists() and (not pipeline_type or not style_id):
         try:
             with open(marker_path, encoding="utf-8") as f:
                 marker = json.load(f)
@@ -450,9 +500,9 @@ def write_checkpoint(
     if isinstance(marker, dict):
         if not pipeline_type and marker.get("pipeline_type"):
             pipeline_type = marker["pipeline_type"]
-        if not style_playbook and marker.get("style_playbook"):
-            style_playbook = marker["style_playbook"]
-    _validate_style_playbook(style_playbook)
+        if not style_id and marker.get("style_id"):
+            style_id = marker["style_id"]
+    _validate_style_id(style_id)
 
     valid_stages = (
         set(get_pipeline_stages(pipeline_type)) if pipeline_type
@@ -513,8 +563,8 @@ def write_checkpoint(
         "human_approved": human_approved,
         "artifacts": artifacts,
     }
-    if style_playbook is not None:
-        checkpoint["style_playbook"] = style_playbook
+    if style_id is not None:
+        checkpoint["style_id"] = style_id
     if review is not None:
         checkpoint["review"] = review
     if cost_snapshot is not None:
@@ -542,7 +592,9 @@ def write_checkpoint(
                     if isinstance(plan, dict):
                         plan["decision_log_ref"] = log_ref
                 else:
-                    plan_or_top["decision_log_ref"] = log_ref
+                        plan_or_top["decision_log_ref"] = log_ref
+
+    _validate_project_treatment_binding(pipeline_dir, project_id, stage, artifacts)
 
     validate_checkpoint(checkpoint)
 

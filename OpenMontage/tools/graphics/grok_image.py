@@ -56,10 +56,9 @@ class GrokImage(BaseTool):
     determinism = Determinism.STOCHASTIC
     runtime = ToolRuntime.API
 
-    dependencies = []
+    dependencies = ["env:GROK2API_KEY"]
     install_instructions = (
-        "Set XAI_API_KEY to your xAI API key.\n"
-        "  Get one from the xAI developer console"
+        "Set GROK2API_KEY (or XAI_API_KEY) for the Grok2API image service."
     )
     agent_skills = ["grok-media"]
 
@@ -138,7 +137,7 @@ class GrokImage(BaseTool):
     user_visible_verification = ["Inspect generated image(s) for composition quality and edit fidelity"]
 
     def get_status(self) -> ToolStatus:
-        if os.environ.get("XAI_API_KEY"):
+        if xc.api_key() and xc.api_base() != "https://api.x.ai":
             return ToolStatus.AVAILABLE
         return ToolStatus.UNAVAILABLE
 
@@ -225,11 +224,11 @@ class GrokImage(BaseTool):
         return [base.parent / f"{base.name}_{idx + 1}{suffix}" for idx in range(count)]
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
-        api_key = os.environ.get("XAI_API_KEY")
+        api_key = xc.api_key()
         if not api_key:
             return ToolResult(
                 success=False,
-                error="XAI_API_KEY not set. " + self.install_instructions,
+                error="GROK2API_KEY / XAI_API_KEY not set. " + self.install_instructions,
             )
 
         import requests

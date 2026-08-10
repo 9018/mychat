@@ -54,7 +54,7 @@ function renderSlate(s) {
     board && board.total_duration_seconds
       ? el("span", { class: "chip" }, `${board.scenes.length} scenes · ${fmtDuration(board.total_duration_seconds)}`)
       : null,
-    s.style_playbook ? el("span", { class: "chip" }, s.style_playbook) : null,
+    s.style_id ? el("span", { class: "chip" }, s.style_id) : null,
   ];
 
   const awaiting = s.stages.find((x) => x.status === "awaiting_human");
@@ -657,6 +657,44 @@ function renderActivity(s) {
     body);
 }
 
+function renderCreativeReview(s) {
+  const review = s.creative_review;
+  if (!review) return null;
+  const candidates = review.candidates?.candidates || review.candidates?.styles || [];
+  const bakeoff = review.bakeoff || {};
+  const qa = review.qa_report || {};
+  const approvals = review.approvals || [];
+  const checks = Object.values(qa.checks || {}).flatMap((item) => Object.entries(item || {})).slice(0, 6);
+  const body = el("div", { class: "panel-body" },
+    el("div", { class: "decision" },
+      el("div", { class: "d-cat" }, "creative gate"),
+      el("div", { class: "d-pick" }, `status → ${review.status || "not_started"}`),
+      el("div", { class: "d-why" }, `${candidates.length} style candidate(s) · ${approvals.length} approval record(s)`),
+    ),
+    bakeoff.preview_path ? el("div", { class: "decision" },
+      el("div", { class: "d-cat" }, "dynamic sample"),
+      el("div", { class: "d-pick" }, bakeoff.preview_path),
+      el("div", { class: "d-why" }, bakeoff.status || "awaiting review"),
+    ) : null,
+    checks.length ? el("div", { class: "decision" },
+      el("div", { class: "d-cat" }, "family QA scale"),
+      el("div", { class: "d-why" }, checks.map(([name, value]) => `${name}: ${value}`).join(" · ")),
+    ) : null,
+    review.review_packet_path ? el("div", { class: "decision" },
+      el("div", { class: "d-cat" }, "review packet"),
+      el("div", { class: "d-why" }, review.review_packet_path),
+    ) : null,
+    review.source_labeling ? el("div", { class: "decision" },
+      el("div", { class: "d-cat" }, "source labeling"),
+      el("div", { class: "d-why" }, shortText(review.source_labeling, 220)),
+    ) : null,
+  );
+  return el("div", { class: "panel" },
+    el("div", { class: "panel-head" }, el("h2", {}, "Creative review"), el("span", { class: "meta" }, "candidates · sample · QA · approvals")),
+    body,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // storyboard filmstrip
 // ---------------------------------------------------------------------------
@@ -1077,7 +1115,9 @@ function render() {
   const aside = el("aside", {});
   const decisions = renderDecisions(s);
   const activity = renderActivity(s);
+  const creativeReview = renderCreativeReview(s);
   if (decisions) aside.append(decisions);
+  if (creativeReview) aside.append(creativeReview);
   if (activity) aside.append(activity);
 
   // Media sections live INSIDE the main column so a tall decisions rail

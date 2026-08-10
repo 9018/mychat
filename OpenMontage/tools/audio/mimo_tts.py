@@ -146,7 +146,7 @@ class MiMoTTS(BaseTool):
     side_effects = ["writes audio file to output_path"]
 
     def get_status(self) -> ToolStatus:
-        if os.environ.get("AGNES_API_KEY") or os.environ.get("OPENAI_API_KEY"):
+        if (os.environ.get("AGNES_API_KEY") or os.environ.get("OPENAI_API_KEY")) and os.environ.get("OPENAI_BASE_URL"):
             return ToolStatus.AVAILABLE
         return ToolStatus.UNAVAILABLE
 

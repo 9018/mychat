@@ -266,3 +266,4 @@ This stage gates on human approval (`human_approval_default: true`). After revie
 checkpoint with `status="awaiting_human"`, present the summary (the Backlot board renders
 the artifact), and **END YOUR TURN**. Do not start the next stage in the same response.
 Approval is per-gate — an earlier "go ahead" does not cover this gate.
+Every factual statement in the approved narration must be atomized into `narration_visual_contract.json` before scene planning. Bind each claim to its script section and target interval; mark dates, locations, quantities, directions and warnings as `must_show` when the viewer must see them. Exact claims require deterministic overlays, diagrams, source media or verified actions rather than narration-only coverage.

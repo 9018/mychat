@@ -1,0 +1,12 @@
+version: 1.0
+family: editorial-collage
+style_id: vox-wpa-propaganda
+design_read: public works optimism, documentary poster clarity, dignified human scale
+checks:
+  - narrative_fit
+  - visual_consistency
+  - typography_legibility
+  - motion_intent
+  - audio_sync
+  - family_signature
+threshold: 0.8

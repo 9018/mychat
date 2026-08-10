@@ -9,16 +9,12 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from dotenv import load_dotenv
+from lib.workspace_config import configure_process_environment
 
 
 def load_env(project_root: Optional[Path] = None) -> None:
-    """Load .env file from project root."""
-    if project_root is None:
-        project_root = Path(__file__).resolve().parent.parent
-    env_path = project_root / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
+    """Load the shared workspace env and compatibility aliases."""
+    configure_process_environment(project_root or Path(__file__).resolve().parent.parent)
 
 
 def get_env(key: str, default: Optional[str] = None) -> Optional[str]:

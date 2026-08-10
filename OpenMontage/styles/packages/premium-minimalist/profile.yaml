@@ -1,0 +1,16 @@
+id: premium-minimalist
+version: 1.0.0
+family: professional-motion
+maturity: atelier_required
+provenance: openmontage/styles/premium-minimalist.yaml
+pipelines: [cinematic, animated-explainer, hybrid]
+composition_modes: [atelier, graphics-led, hybrid]
+asset_strategies: [generated, procedural, archival, user_source, hybrid]
+renderers: [cinematic-trailer, explainer-data]
+runtimes: [remotion, ffmpeg]
+aspect_ratios: ["9:16", "16:9", "2.39:1"]
+title_policy: [overlay, hybrid, none]
+subtitle_policy: [caption, burned-in]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 15, min_candidates: 3, min_score: 0.82}
+combinability: {supports: [cinematic-generative, editorial-collage, documentary-archive], conflicts: []}

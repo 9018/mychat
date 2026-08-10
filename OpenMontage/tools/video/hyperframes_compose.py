@@ -348,6 +348,8 @@ class HyperFramesCompose(BaseTool):
         `hyperframes` npm package actually resolves. A missing/404 package
         counts as unavailable — `runtime_available: True` means the runtime
         can genuinely run end-to-end, not just that the local tooling exists.
+        Registry timeouts are soft failures because the CLI probe can prove
+        that an already-cached package runs offline.
         """
         node_major = self._node_major_version()
         ffmpeg_ok = shutil.which("ffmpeg") is not None
@@ -366,14 +368,17 @@ class HyperFramesCompose(BaseTool):
             reasons.append("ffmpeg not found on PATH")
 
         # Only probe npm if the local tooling is actually usable — otherwise
-        # a missing-node run would also show a confusing npm error.
+        # a missing-node run would also show a confusing npm error. A registry
+        # timeout is a soft failure: the local CLI probe below is authoritative
+        # when the package is already available in the npx cache.
         npm_resolve: dict[str, str] = {}
         if not reasons:
             npm_resolve = self._resolve_npm_package()
-            if "error" in npm_resolve:
+            npm_error = npm_resolve.get("error", "")
+            if npm_error and "timeout" not in npm_error.lower():
                 reasons.append(
                     f"npm package `{self._NPM_PACKAGE}` not resolvable: "
-                    f"{npm_resolve['error']}"
+                    f"{npm_error}"
                 )
 
         cli_probe: dict[str, str] = {}
@@ -1058,8 +1063,9 @@ class HyperFramesCompose(BaseTool):
     }}
     .clip {{ position: absolute; inset: 0; }}
     .clip.video-clip, .clip.image-clip {{ object-fit: cover; width: 100%; height: 100%; }}
-    .clip.text-card {{ display: flex; align-items: center; justify-content: center; padding: 120px 160px; box-sizing: border-box; text-align: center; }}
-    .clip.text-card h1 {{ font-family: var(--font-heading); font-weight: 700; font-size: 96px; line-height: 1.1; margin: 0; color: var(--color-fg); }}
+    .clip.text-card {{ display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 160px; box-sizing: border-box; text-align: center; }}
+    .text-card-panel {{ max-width: 84%; box-sizing: border-box; padding: 32px 42px; background: rgba(6, 14, 28, 0.80); border-left: 5px solid var(--color-accent); border-radius: 4px; box-shadow: 0 12px 40px rgba(0,0,0,0.22); }}
+    .clip.text-card h1 {{ font-family: var(--font-heading); font-weight: 700; font-size: 96px; line-height: 1.1; margin: 0; color: var(--color-fg); text-shadow: 0 2px 16px rgba(0,0,0,0.28); }}
     .clip.text-card .subtitle {{ font-size: 36px; margin-top: 24px; color: var(--color-accent); }}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
@@ -1087,6 +1093,8 @@ class HyperFramesCompose(BaseTool):
         in_s = float(cut.get("in_seconds", 0) or 0)
         out_s = float(cut.get("out_seconds", 0) or 0)
         duration = max(0.1, out_s - in_s)
+        track_index = max(1, int(cut.get("track_index", 1) or 1))
+        overlay_class = " overlay-card" if track_index > 1 else ""
 
         source = cut.get("source") or ""
         cut_type = (cut.get("type") or "").lower()
@@ -1101,10 +1109,11 @@ class HyperFramesCompose(BaseTool):
             subtitle = cut.get("subtitle") or cut.get("caption")
             if subtitle:
                 inner += f'<div class="subtitle">{self._escape_text(subtitle)}</div>'
+            inner = f'<div class="text-card-panel">{inner}</div>'
             html = (
-                f'<div id="{cut_id}" class="clip text-card" '
+                f'<div id="{cut_id}" class="clip text-card{overlay_class}" '
                 f'data-start="{self._f(in_s)}" data-duration="{self._f(duration)}" '
-                f'data-track-index="1">{inner}</div>'
+                f'data-track-index="{track_index}">{inner}</div>'
             )
             # Mild entrance — fade + lift.
             tween = (
@@ -1119,7 +1128,7 @@ class HyperFramesCompose(BaseTool):
                 f'<img id="{cut_id}" class="clip image-clip" '
                 f'src="{self._escape_attr(rel)}" '
                 f'data-start="{self._f(in_s)}" data-duration="{self._f(duration)}" '
-                f'data-track-index="1" alt="">'
+                f'data-track-index="{track_index}" alt="">'
             )
             tween = (
                 f'tl.from("#{cut_id}", {{ scale: 1.05, opacity: 0, duration: 0.5, '
@@ -1133,7 +1142,7 @@ class HyperFramesCompose(BaseTool):
                 f'<video id="{cut_id}" class="clip video-clip" '
                 f'src="{self._escape_attr(rel)}" '
                 f'data-start="{self._f(in_s)}" data-duration="{self._f(duration)}" '
-                f'data-track-index="1" muted playsinline></video>'
+                f'data-track-index="{track_index}" muted playsinline></video>'
             )
             return html, None
 
@@ -1148,15 +1157,15 @@ class HyperFramesCompose(BaseTool):
                 f'data-composition-src="{self._escape_attr(rel)}" '
                 f'data-start="{self._f(in_s)}" data-duration="{self._f(duration)}" '
                 f'data-width="{width}" data-height="{height}" '
-                f'data-track-index="1"></div>'
+                f'data-track-index="{track_index}"></div>'
             )
             return html, None
 
         placeholder = self._escape_text(text or cut.get("reason") or f"Scene {index + 1}")
         html = (
-            f'<div id="{cut_id}" class="clip text-card" '
+            f'<div id="{cut_id}" class="clip text-card{overlay_class}" '
             f'data-start="{self._f(in_s)}" data-duration="{self._f(duration)}" '
-            f'data-track-index="1"><h1>{placeholder}</h1></div>'
+            f'data-track-index="{track_index}"><div class="text-card-panel"><h1>{placeholder}</h1></div></div>'
         )
         return html, None
 

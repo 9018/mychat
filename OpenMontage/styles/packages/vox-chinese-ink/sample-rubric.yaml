@@ -1,0 +1,12 @@
+version: 1.0
+style_id: vox-chinese-ink
+required: true
+min_candidates: 2
+min_duration_seconds: 10
+checks:
+  - opening_frame
+  - representative_scene
+  - transition
+  - title_and_subtitle
+  - audio_sample
+  - family_signature

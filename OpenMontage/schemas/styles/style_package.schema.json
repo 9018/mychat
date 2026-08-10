@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openmontage/styles/style_package",
+  "title": "Executable Style Package",
+  "description": "Versioned creative contract for a production style.",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "family",
+    "maturity",
+    "provenance",
+    "pipelines",
+    "composition_modes",
+    "asset_strategies",
+    "renderers",
+    "runtimes",
+    "aspect_ratios",
+    "title_policy",
+    "subtitle_policy",
+    "providers",
+    "sample_gate",
+    "combinability"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "family": { "type": "string", "minLength": 1 },
+    "maturity": {
+      "type": "string",
+      "enum": ["experimental", "atelier_required", "degraded", "ready", "quality_verified"]
+    },
+    "provenance": { "type": "string", "minLength": 1 },
+    "pipelines": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "composition_modes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "asset_strategies": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "renderers": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "runtimes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "aspect_ratios": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "title_policy": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "subtitle_policy": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "providers": { "type": "array", "items": { "type": "string" } },
+    "sample_gate": {
+      "type": "object",
+      "required": ["required", "duration_seconds"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "duration_seconds": { "type": "number", "minimum": 1, "maximum": 60 },
+        "min_candidates": { "type": "integer", "minimum": 1 },
+        "min_score": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "combinability": {
+      "type": "object",
+      "required": ["supports", "conflicts"],
+      "properties": {
+        "supports": { "type": "array", "items": { "type": "string" } },
+        "conflicts": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "extends": { "type": ["string", "null"] },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openmontage/artifacts/motion_plan",
+  "title": "Motion Plan",
+  "description": "Executable scene-level motion and transition contract bound to a creative treatment.",
+  "type": "object",
+  "required": ["version", "pipeline", "style_id", "render_runtime", "treatment_hash", "scenes"],
+  "properties": {
+    "version": {"type": "string", "const": "1.0"},
+    "pipeline": {"type": "string", "minLength": 1},
+    "style_id": {"type": "string", "minLength": 1},
+    "render_runtime": {"type": "string", "minLength": 1},
+    "treatment_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "start_seconds", "end_seconds", "movement", "transition", "asset_strategy", "required_motion", "title_policy"],
+        "properties": {
+          "scene_id": {"type": "string", "minLength": 1},
+          "start_seconds": {"type": "number", "minimum": 0},
+          "end_seconds": {"type": "number", "exclusiveMinimum": 0},
+          "movement": {"type": "string", "minLength": 1},
+          "transition": {"type": "string", "minLength": 1},
+          "asset_strategy": {"type": "string", "minLength": 1},
+          "required_motion": {"type": "boolean"},
+          "title_policy": {"type": "string", "enum": ["embedded", "overlay", "none"]},
+          "safe_zones": {"type": "array", "items": {"type": "object"}},
+          "shot_language": {"type": "object"},
+          "extensions": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "extensions": {"type": "object"}
+  },
+  "additionalProperties": false
+}

@@ -169,17 +169,6 @@
       },
       "additionalProperties": false
     },
-    "music": {
-      "type": "object",
-      "description": "Legacy top-level music config. Prefer audio.music for new pipelines.",
-      "properties": {
-        "asset_id": { "type": "string" },
-        "volume": { "type": "number", "minimum": 0, "maximum": 1 },
-        "ducking": { "type": "boolean", "default": true },
-        "fade_in_seconds": { "type": "number", "minimum": 0 },
-        "fade_out_seconds": { "type": "number", "minimum": 0 }
-      }
-    },
     "transitions": {
       "type": "array",
       "description": "Global transition list. Per-cut transitions in cuts[].transition_in/out are preferred.",

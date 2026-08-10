@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "style_id": "vox-paper-collage",
+  "scenes": [
+    {
+      "id": "beat-01-shot-01",
+      "type": "generated",
+      "description": "A torn-paper opening frame with an empty upper safe zone",
+      "start_seconds": 0,
+      "end_seconds": 2,
+      "overlay_notes": "main title",
+      "required_assets": [
+        {"type": "image", "description": "opening keyframe", "source": "generate"}
+      ]
+    },
+    {
+      "id": "beat-02-shot-01",
+      "type": "generated",
+      "description": "A layered paper collage closing frame",
+      "start_seconds": 2,
+      "end_seconds": 5,
+      "required_assets": [
+        {"type": "video", "description": "closing clip", "source": "generate"}
+      ]
+    }
+  ],
+  "metadata": {"aspect_ratio": "9:16", "narration_language": "zh"}
+}

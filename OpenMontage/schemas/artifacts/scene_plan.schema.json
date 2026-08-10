@@ -7,7 +7,7 @@
   "required": ["version", "scenes"],
   "properties": {
     "version": { "type": "string", "const": "1.0" },
-    "style_playbook": { "type": "string", "description": "Name of the active style playbook" },
+    "style_id": { "type": "string", "description": "Stable identifier of the active style package" },
     "scenes": {
       "type": "array",
       "items": {
@@ -22,12 +22,61 @@
           "description": { "type": "string" },
           "start_seconds": { "type": "number", "minimum": 0 },
           "end_seconds": { "type": "number", "minimum": 0 },
+          "claim_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "must_show": { "type": "boolean" },
+          "fact_layer_policy": {
+            "type": "string",
+            "enum": ["none", "deterministic", "source", "generated_with_verification", "mixed"]
+          },
+          "semantic_evidence_points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["timestamp"],
+              "properties": {
+                "timestamp": { "type": "number", "minimum": 0 },
+                "tokens": { "type": "array", "items": { "type": "string" } },
+                "note": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "semantic_risk": { "type": "string", "enum": ["low", "medium", "high"] },
           "script_section_id": { "type": "string" },
           "framing": { "type": "string" },
           "movement": { "type": "string" },
           "transition_in": { "type": "string" },
           "transition_out": { "type": "string" },
           "overlay_notes": { "type": "string" },
+          "text_in_image": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the generated/source image already contains the primary title"
+          },
+          "title_policy": {
+            "type": "string",
+            "enum": ["embedded", "overlay", "none"],
+            "description": "Whether title text lives in the image, is composited later, or is omitted"
+          },
+          "title_max_width_ratio": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          },
+          "safe_zones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "y", "width", "height"],
+              "properties": {
+                "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                "y": { "type": "number", "minimum": 0, "maximum": 1 },
+                "width": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+                "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+              },
+              "additionalProperties": false
+            }
+          },
           "shot_language": {
             "type": "object",
             "description": "Structured cinematography vocabulary for this scene",
@@ -105,6 +154,11 @@
               },
               "required": ["type", "description", "source"]
             }
+          },
+          "extensions": {
+            "type": "object",
+            "description": "Preserved project-specific and Vox beat fields.",
+            "additionalProperties": true
           }
         },
         "additionalProperties": false

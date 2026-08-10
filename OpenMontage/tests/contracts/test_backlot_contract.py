@@ -144,7 +144,7 @@ class TestInitProject:
     def test_creates_layout_and_marker(self, tmp_path):
         pdir = init_project(
             "my-film", title="My Film", pipeline_type="cinematic",
-            pipeline_dir=tmp_path, style_playbook="clean-professional",
+            pipeline_dir=tmp_path, style_id="clean-professional",
         )
         assert (pdir / "artifacts").is_dir()
         assert (pdir / "assets" / "images").is_dir()
@@ -152,7 +152,7 @@ class TestInitProject:
         marker = json.loads((pdir / PROJECT_MARKER_FILENAME).read_text())
         assert marker["project_id"] == "my-film"
         assert marker["pipeline_type"] == "cinematic"
-        assert marker["style_playbook"] == "clean-professional"
+        assert marker["style_id"] == "clean-professional"
         assert "created_at" in marker
 
     def test_idempotent_preserves_created_at(self, tmp_path):

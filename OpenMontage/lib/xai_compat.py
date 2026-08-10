@@ -29,6 +29,11 @@ def proxies() -> dict | None:
     return {"http": p, "https": p} if p else None
 
 
+def api_key() -> str | None:
+    """Return the shared Grok2API key, accepting the legacy xAI alias."""
+    return os.environ.get("GROK2API_KEY") or os.environ.get("XAI_API_KEY")
+
+
 def media_url(url: str) -> tuple[str, bool]:
     """Return (download_url, needs_bearer). Grok2API media hosts are
     127.0.0.1/localhost and require the client key on the media endpoints."""

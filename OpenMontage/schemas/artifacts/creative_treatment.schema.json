@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openmontage/artifacts/creative_treatment",
+  "title": "Creative Treatment",
+  "description": "Approved creative contract connecting pipeline, style package, asset strategy, runtime, and quality promise.",
+  "type": "object",
+  "required": [
+    "version",
+    "project_id",
+    "production_family",
+    "pipeline",
+    "style_family",
+    "style_id",
+    "style_package_version",
+    "taste_profile",
+    "reference_strategy",
+    "narrative_structure",
+    "visual_language",
+    "typography_system",
+    "motion_language",
+    "audio_language",
+    "asset_strategy",
+    "renderer_family",
+    "render_runtime",
+    "composition_mode",
+    "quality_rubric",
+    "fallback_policy",
+    "delivery_promise"
+  ],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "production_family": { "type": "string", "minLength": 1 },
+    "pipeline": { "type": "string", "minLength": 1 },
+    "style_family": { "type": "string", "minLength": 1 },
+    "style_id": { "type": "string", "minLength": 1 },
+    "style_package_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "style_snapshot": {
+      "type": "object",
+      "required": ["id", "version", "maturity"],
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "maturity": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "treatment_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "taste_profile": {
+      "type": "object",
+      "required": [
+        "design_read",
+        "visual_variance",
+        "motion_intensity",
+        "information_density",
+        "palette_discipline",
+        "layout_variation",
+        "reference_strategy",
+        "anti_patterns",
+        "quality_gates"
+      ],
+      "properties": {
+        "design_read": { "type": "string", "minLength": 1 },
+        "visual_variance": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "motion_intensity": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "information_density": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "palette_discipline": { "type": "string" },
+        "layout_variation": { "type": "string" },
+        "reference_strategy": { "type": "string" },
+        "anti_patterns": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "quality_gates": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "additionalProperties": false
+    },
+    "reference_strategy": {
+      "type": "object",
+      "required": ["mode", "references", "notes"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["none", "reference_derived", "reference_locked", "user_source"] },
+        "references": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "narrative_structure": { "type": "object", "minProperties": 1 },
+    "visual_language": {
+      "type": "object",
+      "required": ["palette", "composition", "texture"],
+      "properties": {
+        "palette": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "composition": { "type": "string", "minLength": 1 },
+        "texture": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "typography_system": {
+      "type": "object",
+      "required": ["title_font", "body_font", "title_policy", "safe_zone_policy"],
+      "properties": {
+        "title_font": { "type": "string" },
+        "body_font": { "type": "string" },
+        "title_policy": { "type": "string", "enum": ["embedded", "overlay", "hybrid", "none"] },
+        "safe_zone_policy": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "motion_language": {
+      "type": "object",
+      "required": ["camera", "transitions", "pace"],
+      "properties": {
+        "camera": { "type": "string" },
+        "transitions": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "pace": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "audio_language": {
+      "type": "object",
+      "required": ["narration", "music", "sfx"],
+      "properties": {
+        "narration": { "type": "string" },
+        "music": { "type": "string" },
+        "sfx": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "asset_strategy": {
+      "type": "object",
+      "required": ["default", "allowed"],
+      "properties": {
+        "default": { "type": "string" },
+        "allowed": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "per_scene": { "type": "object", "additionalProperties": { "type": "object" } }
+      },
+      "additionalProperties": false
+    },
+    "renderer_family": { "type": "string", "minLength": 1 },
+    "render_runtime": { "type": "string", "minLength": 1 },
+    "composition_mode": { "type": "string", "enum": ["templated", "atelier"] },
+    "quality_rubric": {
+      "type": "object",
+      "required": ["primary_family", "threshold", "secondary_families"],
+      "properties": {
+        "primary_family": { "type": "string" },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "secondary_families": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "fallback_policy": {
+      "type": "object",
+      "required": ["mode", "allowed", "requires_reapproval"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["gate_required", "manual_approved", "none"] },
+        "allowed": { "type": "array", "items": { "type": "string" } },
+        "requires_reapproval": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
+    "delivery_promise": {
+      "type": "object",
+      "required": ["duration_seconds", "width", "height", "fps", "language", "quality_floor"],
+      "properties": {
+        "duration_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "language": { "type": "string" },
+        "quality_floor": { "type": "string", "enum": ["draft", "presentable", "broadcast"] }
+      },
+      "additionalProperties": false
+    },
+    "extensions": { "type": "object" }
+  },
+  "additionalProperties": false
+}

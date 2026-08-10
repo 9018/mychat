@@ -57,10 +57,9 @@ class GrokVideo(BaseTool):
     determinism = Determinism.STOCHASTIC
     runtime = ToolRuntime.API
 
-    dependencies = []
+    dependencies = ["env:GROK2API_KEY"]
     install_instructions = (
-        "Set XAI_API_KEY to your xAI API key.\n"
-        "  Get one from the xAI developer console"
+        "Set GROK2API_KEY (or XAI_API_KEY) for the Grok2API video service."
     )
     agent_skills = ["grok-media", "ai-video-gen"]
 
@@ -147,7 +146,8 @@ class GrokVideo(BaseTool):
     user_visible_verification = ["Watch generated clip for motion quality and prompt fidelity"]
 
     def get_status(self) -> ToolStatus:
-        if os.environ.get("XAI_API_KEY"):
+        from lib import xai_compat as xc
+        if xc.api_key() and xc.api_base() != "https://api.x.ai":
             return ToolStatus.AVAILABLE
         return ToolStatus.UNAVAILABLE
 
@@ -218,11 +218,11 @@ class GrokVideo(BaseTool):
         return payload
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
-        api_key = os.environ.get("XAI_API_KEY")
+        api_key = xc.api_key()
         if not api_key:
             return ToolResult(
                 success=False,
-                error="XAI_API_KEY not set. " + self.install_instructions,
+                error="GROK2API_KEY / XAI_API_KEY not set. " + self.install_instructions,
             )
 
         import requests

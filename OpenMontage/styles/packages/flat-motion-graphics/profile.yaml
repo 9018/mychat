@@ -1,0 +1,16 @@
+id: flat-motion-graphics
+version: 1.0.0
+family: professional-motion
+maturity: atelier_required
+provenance: openmontage/styles/flat-motion-graphics.yaml
+pipelines: [animation, animated-explainer, hybrid]
+composition_modes: [graphics-led, hybrid]
+asset_strategies: [procedural, generated, svg]
+renderers: [animation-first, explainer-data]
+runtimes: [remotion, canvas, lottie]
+aspect_ratios: ["9:16", "16:9", "1:1"]
+title_policy: [overlay, hybrid, none]
+subtitle_policy: [caption, burned-in]
+providers: [image, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 2, min_score: 0.8}
+combinability: {supports: [professional-motion, editorial-collage], conflicts: []}

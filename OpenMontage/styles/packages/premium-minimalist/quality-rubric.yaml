@@ -1,0 +1,12 @@
+version: 1.0
+family: professional-motion
+style_id: premium-minimalist
+design_read: editorial luxury, controlled tension, high trust and sparse emphasis
+checks:
+  - narrative_fit
+  - visual_consistency
+  - typography_legibility
+  - motion_intent
+  - audio_sync
+  - family_signature
+threshold: 0.8

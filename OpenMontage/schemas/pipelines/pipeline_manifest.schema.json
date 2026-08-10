@@ -18,6 +18,39 @@
       "enum": ["production", "beta"],
       "description": "Whether this pipeline has been audited and is considered stable"
     },
+    "creative_kernel": {
+      "type": "object",
+      "description": "Shared OpenMontage creative-kernel contract used by every production pipeline.",
+      "required": ["treatment_artifact", "motion_plan_artifact", "style_registry", "family_qa", "hero_gate", "standard_gate"],
+      "properties": {
+        "treatment_artifact": { "type": "string", "const": "creative_treatment" },
+        "motion_plan_artifact": { "type": "string", "const": "motion_plan" },
+        "style_registry": { "type": "string", "const": "styles/packages" },
+        "family_qa": { "type": "string", "enum": ["required"] },
+        "hero_gate": { "type": "string", "enum": ["dynamic_sample_approval"] },
+        "standard_gate": { "type": "string", "enum": ["technical_qa"] }
+      },
+      "additionalProperties": false
+    },
+    "semantic_alignment": {
+      "type": "object",
+      "description": "Claim-level narration-to-visual contract and compose-time evidence gate.",
+      "required": [
+        "contract_artifact",
+        "report_artifact",
+        "contract_required_from_stage",
+        "evidence_required_stage",
+        "report_required_before_publish"
+      ],
+      "properties": {
+        "contract_artifact": { "type": "string", "const": "narration_visual_contract" },
+        "report_artifact": { "type": "string", "const": "semantic_qa_report" },
+        "contract_required_from_stage": { "type": "string", "const": "script" },
+        "evidence_required_stage": { "type": "string", "const": "compose" },
+        "report_required_before_publish": { "type": "boolean", "const": true }
+      },
+      "additionalProperties": false
+    },
     "compatible_playbooks": {
       "oneOf": [
         {
@@ -45,7 +78,6 @@
         "required": ["name"],
         "properties": {
           "name": { "type": "string" },
-          "agent": { "type": "string", "description": "Legacy: class name for Python-driven stages" },
           "skill": { "type": "string", "description": "Skill path for instruction-driven stages (e.g., pipelines/explainer/idea-director)" },
           "required_artifacts_in": {
             "type": "array",
@@ -60,11 +92,6 @@
             "type": "array",
             "items": { "type": "string" },
             "description": "Artifact names this stage produces"
-          },
-          "preferred_tools": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Legacy: preferred tools for Python handlers"
           },
           "fallback_tools": {
             "type": "array",
@@ -132,6 +159,24 @@
       }
     },
     "metadata": { "type": "object" },
+    "production_modes": {
+      "type": "array",
+      "description": "Pipeline-specific production modes selected during idea/proposal.",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "required_tools": { "type": "array", "items": { "type": "string" } },
+          "optional_tools": { "type": "array", "items": { "type": "string" } },
+          "best_for": { "type": "array", "items": { "type": "string" } },
+          "scene_type": { "type": "string" },
+          "agent_skills": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
     "orchestration": {
       "type": "object",
       "description": "Executive Producer orchestration config",

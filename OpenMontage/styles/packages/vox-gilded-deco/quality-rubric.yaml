@@ -1,0 +1,12 @@
+version: 1.0
+family: editorial-collage
+style_id: vox-gilded-deco
+design_read: rare luxury, theatrical symmetry, art-deco ceremony
+checks:
+  - narrative_fit
+  - visual_consistency
+  - typography_legibility
+  - motion_intent
+  - audio_sync
+  - family_signature
+threshold: 0.8

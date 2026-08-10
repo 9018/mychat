@@ -95,6 +95,25 @@ class TestBoardState:
         proposal_stage = next(x for x in s["stages"] if x["name"] == "proposal")
         assert proposal_stage["produces"] == ["proposal_packet", "decision_log"]
 
+    def test_creative_review_surfaces_candidates_bakeoff_qa_and_approvals(self, projects_root):
+        p = _make_project(projects_root, "creative-gate")
+        _write(p / "artifacts" / "style-candidates.json", {
+            "candidates": [{"style_id": "clean-professional", "score": 0.82}],
+        })
+        _write(p / "artifacts" / "style-bakeoff.json", {
+            "status": "approved",
+            "approvals": [{"decision": "approved", "reviewer": "editor"}],
+            "preview_path": "renders/sample.mp4",
+        })
+        _write(p / "artifacts" / "qa_report.json", {
+            "status": "blocked",
+            "checks": {"professional-motion": {"typography_legibility": 0.9}},
+        })
+        s = load_board_state(p)
+        assert s["creative_review"]["status"] == "blocked"
+        assert s["creative_review"]["candidates"]["candidates"][0]["style_id"] == "clean-professional"
+        assert s["creative_review"]["approvals"][0]["reviewer"] == "editor"
+
     def test_gate_skip_detection(self, projects_root):
         p = _make_project(projects_root, "sneaky")
         # completed on a gated stage with no awaiting_human history and no

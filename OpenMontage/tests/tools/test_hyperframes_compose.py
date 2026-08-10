@@ -46,6 +46,46 @@ def test_hyperframes_get_info_reports_runtime():
     }
 
 
+def test_text_card_stacks_title_and_subtitle_vertically():
+    """Generated vertical cards must not place the subtitle beside the title."""
+    html = HyperFramesCompose()._generate_index_html(
+        cuts=[
+            {
+                "type": "text_card",
+                "text": "Title",
+                "subtitle": "Subtitle",
+                "in_seconds": 0,
+                "out_seconds": 2,
+            }
+        ],
+        audio_refs={"narration": [], "music": None},
+        width=720,
+        height=1280,
+        total_duration=2,
+        css_vars={"--color-bg": "#000", "--color-fg": "#fff"},
+        title="test",
+    )
+    assert ".clip.text-card { display: flex; flex-direction: column;" in html
+
+
+def test_overlay_cut_preserves_track_index_and_panel_class():
+    """Image and text overlays must occupy separate HyperFrames tracks."""
+    html = HyperFramesCompose()._generate_index_html(
+        cuts=[
+            {"type": "image", "source": "scene.png", "in_seconds": 0, "out_seconds": 2, "track_index": 1},
+            {"type": "callout", "text": "Title", "in_seconds": 0, "out_seconds": 2, "track_index": 2},
+        ],
+        audio_refs={"narration": [], "music": None},
+        width=720,
+        height=1280,
+        total_duration=2,
+        css_vars={"--color-bg": "#000", "--color-fg": "#fff", "--color-accent": "#f59e0b"},
+        title="test",
+    )
+    assert 'class="clip text-card overlay-card"' in html
+    assert 'data-track-index="2"' in html
+
+
 def test_hyperframes_layer2_skill_names_correct_package():
     """Regression: skills/core/hyperframes.md previously claimed HyperFrames
     was 'consumable via `npx @hyperframes/cli`' which is the 404-ing name.
@@ -261,6 +301,33 @@ def test_runtime_check_succeeds_when_npm_resolves(monkeypatch):
         pytest.skip("Local runtime floor not met on this machine")
     assert rc["runtime_available"] is True
     assert rc["npm_package_version"] == "0.4.5"
+    assert rc["reasons"] == []
+
+
+def test_runtime_check_uses_working_cli_when_npm_registry_times_out(monkeypatch):
+    """A slow/offline npm registry must not disable an already cached CLI.
+
+    The executable probe is the authoritative local proof that HyperFrames
+    can run. Registry lookup is useful for diagnostics, but a five-second
+    network timeout must not block the runtime when `npx hyperframes` works.
+    """
+    monkeypatch.setattr(
+        HyperFramesCompose,
+        "_resolve_npm_package",
+        classmethod(lambda cls: {"error": "timeout (5s) — offline or slow registry"}),
+    )
+    monkeypatch.setattr(
+        HyperFramesCompose,
+        "_probe_cli",
+        classmethod(lambda cls: {"status": "ok"}),
+    )
+
+    rc = HyperFramesCompose()._runtime_check()
+
+    if rc["node_major"] is None or not rc["ffmpeg_available"] or not rc["npx_available"]:
+        pytest.skip("Local runtime floor not met on this machine")
+    assert rc["runtime_available"] is True
+    assert rc["cli_probe_status"] == "ok"
     assert rc["reasons"] == []
 
 

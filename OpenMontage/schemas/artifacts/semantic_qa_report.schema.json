@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openmontage/artifacts/semantic_qa_report",
+  "title": "Semantic QA Report",
+  "description": "Claim-level evidence report for narration and final visuals.",
+  "type": "object",
+  "required": ["version", "project_id", "contract_hash", "status", "asset_checks", "timeline_checks", "final_checks", "claim_results", "coverage_metrics", "evidence"],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "contract_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "status": { "type": "string", "enum": ["pass", "fail", "blocked"] },
+    "asset_checks": { "type": "object", "additionalProperties": true },
+    "timeline_checks": { "type": "object", "additionalProperties": true },
+    "final_checks": { "type": "object", "additionalProperties": true },
+    "claim_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "status", "scene_ids", "evidence_timestamps", "evidence_paths", "observed_visual", "missing_tokens", "unexpected_assertions", "reviewer_note"],
+        "properties": {
+          "claim_id": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["pass", "fail", "blocked"] },
+          "scene_ids": { "type": "array", "items": { "type": "string" } },
+          "actual_narration_start": { "type": ["number", "null"] },
+          "actual_narration_end": { "type": ["number", "null"] },
+          "evidence_timestamps": { "type": "array", "items": { "type": ["number", "string"] } },
+          "evidence_paths": { "type": "array", "items": { "type": "string" } },
+          "observed_visual": { "type": "string" },
+          "missing_tokens": { "type": "array", "items": { "type": "string" } },
+          "unexpected_assertions": { "type": "array", "items": { "type": "string" } },
+          "reviewer_note": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "coverage_metrics": {
+      "type": "object",
+      "required": ["must_show_total", "must_show_covered", "must_show_coverage_ratio", "exact_total", "exact_accurate", "missing_must_show_claim_ids"],
+      "properties": {
+        "must_show_total": { "type": "integer", "minimum": 0 },
+        "must_show_covered": { "type": "integer", "minimum": 0 },
+        "must_show_coverage_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+        "exact_total": { "type": "integer", "minimum": 0 },
+        "exact_accurate": { "type": "integer", "minimum": 0 },
+        "missing_must_show_claim_ids": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "path", "timestamp", "kind"],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "path": { "type": "string", "minLength": 1 },
+          "timestamp": { "type": ["number", "string"] },
+          "kind": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": false
+}

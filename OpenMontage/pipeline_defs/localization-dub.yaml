@@ -6,6 +6,13 @@ description: >
   adds quality gates for translation accuracy, timing preservation, and per-locale consistency.
 category: custom
 stability: beta
+creative_kernel:
+  treatment_artifact: creative_treatment
+  motion_plan_artifact: motion_plan
+  style_registry: styles/packages
+  family_qa: required
+  hero_gate: dynamic_sample_approval
+  standard_gate: technical_qa
 default_checkpoint_policy: guided
 
 orchestration:

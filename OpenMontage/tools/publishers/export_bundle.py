@@ -110,6 +110,10 @@ class ExportBundle(BaseTool):
                 "type": "string",
                 "description": "Override the ISO-8601 timestamp (mainly for deterministic tests).",
             },
+            "output_mirror_root": {
+                "type": "string",
+                "description": "Optional local root for mirroring only final deliverables.",
+            },
         },
     }
     output_schema = {
@@ -188,6 +192,14 @@ class ExportBundle(BaseTool):
         out_video = video_dir / f"output{video_path.suffix or '.mp4'}"
         shutil.copy2(video_path, out_video)
         files_written.append(str(out_video))
+
+        mirror_root = inputs.get("output_mirror_root")
+        if mirror_root:
+            mirror_dir = Path(mirror_root).expanduser() / project_name
+            mirror_dir.mkdir(parents=True, exist_ok=True)
+            mirror_video = mirror_dir / out_video.name
+            shutil.copy2(video_path, mirror_video)
+            files_written.append(str(mirror_video))
 
         # Subtitles (optional)
         subs_in = inputs.get("subtitles_path")

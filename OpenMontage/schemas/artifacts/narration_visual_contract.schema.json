@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openmontage/artifacts/narration_visual_contract",
+  "title": "Narration Visual Contract",
+  "description": "Claim-level contract connecting approved narration to visual evidence.",
+  "type": "object",
+  "required": ["version", "project_id", "script_hash", "delivery_promise", "claims", "coverage_policy"],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "script_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "delivery_promise": {
+      "type": "object",
+      "required": ["duration_seconds", "width", "height", "fps", "language"],
+      "properties": {
+        "duration_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "width": { "type": "integer", "exclusiveMinimum": 0 },
+        "height": { "type": "integer", "exclusiveMinimum": 0 },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "language": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "section_id", "narration_text", "claim_type",
+          "start_seconds_target", "end_seconds_target", "must_show",
+          "precision", "representation_mode", "required_visual_tokens",
+          "forbidden_substitutions", "source_ref"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "section_id": { "type": "string", "minLength": 1 },
+          "narration_text": { "type": "string", "minLength": 1 },
+          "claim_type": {
+            "type": "string",
+            "enum": ["time", "location", "quantity", "direction", "causal", "action", "warning", "identity", "summary", "mood"]
+          },
+          "start_seconds_target": { "type": "number", "minimum": 0 },
+          "end_seconds_target": { "type": "number", "minimum": 0 },
+          "must_show": { "type": "boolean" },
+          "precision": { "type": "string", "enum": ["exact", "literal", "supporting", "atmospheric"] },
+          "representation_mode": {
+            "type": "string",
+            "enum": ["generated_subject", "source_media", "deterministic_graphic", "overlay_text", "diagram", "character_action", "screen_action", "approved_narration_only"]
+          },
+          "required_visual_tokens": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "forbidden_substitutions": { "type": "array", "items": { "type": "string" } },
+          "source_ref": { "type": "string", "minLength": 1 },
+          "metadata": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "coverage_policy": {
+      "type": "object",
+      "required": [
+        "must_show_requires_evidence",
+        "exact_requires_deterministic_support",
+        "max_unplanned_narration_boundary_deviation_seconds",
+        "max_unapproved_speed_change_ratio"
+      ],
+      "properties": {
+        "must_show_requires_evidence": { "type": "boolean" },
+        "exact_requires_deterministic_support": { "type": "boolean" },
+        "max_unplanned_narration_boundary_deviation_seconds": { "type": "number", "minimum": 0 },
+        "max_unapproved_speed_change_ratio": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": false
+}

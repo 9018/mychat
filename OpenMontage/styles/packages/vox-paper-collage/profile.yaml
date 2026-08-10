@@ -1,0 +1,16 @@
+id: vox-paper-collage
+version: 1.0.0
+family: editorial-collage
+maturity: atelier_required
+provenance: openmontage/pipeline_defs/vox-collage.yaml
+pipelines: [vox-collage, hybrid, documentary-montage]
+composition_modes: [collage-led, hybrid]
+asset_strategies: [generated, archival, user_source, hybrid]
+renderers: [cinematic-trailer, documentary-montage]
+runtimes: [ffmpeg, remotion]
+aspect_ratios: ["9:16", "16:9", "1:1"]
+title_policy: [embedded, overlay, hybrid]
+subtitle_policy: [caption, burned-in]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 3, min_score: 0.82}
+combinability: {supports: [cinematic-generative, documentary-archive, professional-motion], conflicts: []}

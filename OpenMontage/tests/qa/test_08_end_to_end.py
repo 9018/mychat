@@ -151,7 +151,7 @@ cp_path = write_checkpoint(
     PIPELINE_DIR, PROJECT_ID, "research", "completed",
     artifacts={"research_brief": research_brief},
     pipeline_type="animated-explainer",
-    style_playbook="clean-professional",
+    style_id="clean-professional",
 )
 check("Research checkpoint written", cp_path.exists())
 
@@ -237,7 +237,7 @@ cp_path = write_checkpoint(
     PIPELINE_DIR, PROJECT_ID, "proposal", "completed", human_approved=True,
     artifacts={"proposal_packet": proposal_packet},
     pipeline_type="animated-explainer",
-    style_playbook="clean-professional",
+    style_id="clean-professional",
 )
 check("Proposal checkpoint written", cp_path.exists())
 check("Next stage after proposal", get_next_stage(PIPELINE_DIR, PROJECT_ID, "animated-explainer") == "script")
@@ -297,7 +297,7 @@ print("\n--- Stage 3: scene_plan ---")
 SCENE_TYPES = ["text_card", "diagram", "animation", "generated", "text_card"]
 scene_plan = {
     "version": "1.0",
-    "style_playbook": "clean-professional",
+    "style_id": "clean-professional",
     "scenes": [
         {
             "id": f"sc{i+1}",
@@ -435,12 +435,14 @@ edit_decisions = {
         }
         for scene in scene_plan["scenes"]
     ],
-    "music": {
-        "asset_id": "a_music",
-        "volume": 0.2,
-        "ducking": True,
-        "fade_in_seconds": 1.0,
-        "fade_out_seconds": 2.0,
+    "audio": {
+        "music": {
+            "asset_id": "a_music",
+            "volume": 0.2,
+            "ducking": True,
+            "fade_in_seconds": 1.0,
+            "fade_out_seconds": 2.0,
+        },
     },
     "subtitles": {
         "enabled": True,

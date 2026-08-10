@@ -1,0 +1,182 @@
+name: vox-collage
+version: "1.0"
+description: >
+  Beat-driven paper collage pipeline migrated from vox-director. It combines
+  generated keyframes, short motion clips, MiMo narration and lightweight
+  FFmpeg/segmented Remotion composition under OpenMontage checkpoints.
+category: generated
+stability: beta
+creative_kernel:
+  treatment_artifact: creative_treatment
+  motion_plan_artifact: motion_plan
+  style_registry: styles/packages
+  family_qa: required
+  hero_gate: dynamic_sample_approval
+  standard_gate: technical_qa
+
+semantic_alignment:
+  contract_artifact: narration_visual_contract
+  report_artifact: semantic_qa_report
+  contract_required_from_stage: script
+  evidence_required_stage: compose
+  report_required_before_publish: true
+default_checkpoint_policy: guided
+
+orchestration:
+  mode: executive-producer
+  skill: pipelines/vox-collage/executive-producer
+  budget_default_usd: 2.0
+  max_revisions_per_stage: 2
+  max_send_backs: 2
+  max_wall_time_minutes: 30
+
+extensions:
+  custom_scripts: false
+  custom_playbooks: true
+  custom_skills: true
+  custom_tools: false
+
+required_skills:
+  - pipelines/vox-collage/executive-producer
+  - pipelines/vox-collage/research-director
+  - pipelines/vox-collage/proposal-director
+  - pipelines/vox-collage/script-director
+  - pipelines/vox-collage/scene-director
+  - pipelines/vox-collage/asset-director
+  - pipelines/vox-collage/edit-director
+  - pipelines/vox-collage/compose-director
+  - pipelines/vox-collage/publish-director
+  - meta/reviewer
+  - meta/checkpoint-protocol
+
+compatible_playbooks:
+  recommended:
+    - vox-paper-collage
+  also_works:
+    - flat-motion-graphics
+    - premium-minimalist
+  custom_allowed: true
+
+stages:
+  - name: research
+    skill: pipelines/vox-collage/research-director
+    produces: [research_brief]
+    tools_available: [web_search]
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - Topic has a clear visual metaphor suitable for paper collage.
+      - References distinguish the requested look from generic slideshow output.
+    success_criteria:
+      - Schema-valid research_brief artifact.
+      - At least three visual directions or supplied references are documented.
+
+  - name: proposal
+    skill: pipelines/vox-collage/proposal-director
+    required_artifacts_in: [research_brief]
+    produces: [proposal_packet, decision_log]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Provider, model, render runtime and composition mode are explicit.
+      - Motion-required delivery is not downgraded to still coverage.
+      - Music plan and title policy are explicit.
+    success_criteria:
+      - Schema-valid proposal_packet and decision_log.
+      - Delivery promise includes aspect ratio, duration and motion_required.
+      - One sample plan is costed before batch generation.
+
+  - name: script
+    skill: pipelines/vox-collage/script-director
+    required_artifacts_in: [proposal_packet]
+    produces: [script, narration_visual_contract]
+    tools_available: [tts_selector]
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Narration is divided into measurable beats.
+      - Titles are separated from narration and image-embedded text.
+    success_criteria:
+      - Schema-valid script artifact.
+      - Every narration section has timing and beat linkage.
+
+  - name: scene_plan
+    skill: pipelines/vox-collage/scene-director
+    required_artifacts_in: [script]
+    optional_artifacts_in: [proposal_packet, narration_visual_contract]
+    produces: [scene_plan]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Every scene has shot timing, aspect ratio and title policy.
+      - Image-to-video references match the target aspect ratio.
+    success_criteria:
+      - Schema-valid scene_plan artifact.
+      - Each beat has one or more shot records and asset requirements.
+
+  - name: assets
+    skill: pipelines/vox-collage/asset-director
+    required_artifacts_in: [scene_plan]
+    optional_artifacts_in: [script, proposal_packet]
+    produces: [asset_manifest]
+    tools_available: [image_selector, video_selector, tts_selector, audio_mixer]
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Style sample and motion sample are approved before batch generation.
+      - Real motion clips are used for motion-required beats.
+      - Request IDs and output paths are recorded for resume.
+    success_criteria:
+      - Schema-valid asset_manifest artifact.
+      - All referenced assets exist and pass media probes.
+
+  - name: edit
+    skill: pipelines/vox-collage/edit-director
+    required_artifacts_in: [scene_plan, asset_manifest]
+    optional_artifacts_in: [script]
+    produces: [edit_decisions]
+    tools_available: [video_stitch]
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - Beat order and narration alignment are complete.
+      - Title overlay is not duplicated when text_in_image is true.
+    success_criteria:
+      - Schema-valid edit_decisions artifact.
+      - Full runtime is covered by shot and overlay decisions.
+
+  - name: compose
+    skill: pipelines/vox-collage/compose-director
+    required_artifacts_in: [edit_decisions, asset_manifest]
+    optional_artifacts_in: [scene_plan]
+    produces: [render_report, final_review, semantic_qa_report]
+    required_tools: [video_compose, audio_mixer]
+    optional_tools: [video_stitch, video_trimmer]
+    tools_available: [video_compose, audio_mixer, video_stitch, video_trimmer]
+    checkpoint_required: true
+    human_approval_default: false
+    review_focus:
+      - FFmpeg stream-copy or segmented Remotion strategy is explicit.
+      - ffprobe confirms dimensions, duration, streams and codecs.
+      - Title safe-zone preview passed before final render.
+    success_criteria:
+      - Schema-valid render_report and final_review artifacts.
+      - final.mp4 exists and passes ffprobe validation.
+
+  - name: publish
+    skill: pipelines/vox-collage/publish-director
+    required_artifacts_in: [render_report, final_review]
+    optional_artifacts_in: [proposal_packet, script, narration_visual_contract, semantic_qa_report]
+    produces: [publish_log]
+    required_tools: [export_bundle]
+    tools_available: [export_bundle]
+    checkpoint_required: true
+    human_approval_default: true
+    review_focus:
+      - Final output and metadata are clearly linked to the project.
+      - Output mirror contains deliverables but not intermediate MP4 files.
+    success_criteria:
+      - Schema-valid publish_log artifact.
+      - Export bundle contains final video, metadata and any approved subtitles/thumbnail.

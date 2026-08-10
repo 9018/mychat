@@ -41,6 +41,16 @@
 
 将您的 AI 编程助手变成一个完整的视频制作工作室。用通俗的语言描述您的需求——您的智能体会自动处理研究、脚本编写、资产生成、剪辑以及最终合成。
 
+## 单入口融合：vox-collage
+
+本项目已将 vox-director 的纸张拼贴、异步视频生成、MiMo 旁白、标题安全区、轻量合成和发布镜像能力迁移到 `vox-collage`。日常只需使用 OpenMontage：
+
+```text
+research → proposal → script → scene_plan → assets → edit → compose → publish
+```
+
+详细配置、断点恢复和验收命令见 [`docs/SINGLE_ENTRY_OPERATIONS.md`](docs/SINGLE_ENTRY_OPERATIONS.md)。
+
 **重要的区别：** OpenMontage 可以制作基于图像生成的视频，但它也能为免费/开源工作流制作真正的**原生视频（video video）**：智能体会从免费的免版税素材和开源档案中建立语料库，检索实际的动态画面，将它们剪辑到时间线中，并渲染出成品。这绝非通常那种“让几张静态图片动起来就称为视频”的把戏。
 
 <div align="center">

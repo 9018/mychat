@@ -6,6 +6,20 @@ description: >
   with cost estimates, and gets explicit user approval before any assets are generated.
 category: generated
 stability: production
+creative_kernel:
+  treatment_artifact: creative_treatment
+  motion_plan_artifact: motion_plan
+  style_registry: styles/packages
+  family_qa: required
+  hero_gate: dynamic_sample_approval
+  standard_gate: technical_qa
+
+semantic_alignment:
+  contract_artifact: narration_visual_contract
+  report_artifact: semantic_qa_report
+  contract_required_from_stage: script
+  evidence_required_stage: compose
+  report_required_before_publish: true
 
 default_checkpoint_policy: guided
 
@@ -123,6 +137,7 @@ stages:
       - research_brief
     produces:
       - script
+      - narration_visual_contract
     tools_available: []
     checkpoint_required: true
     human_approval_default: true
@@ -143,6 +158,7 @@ stages:
       - script
     optional_artifacts_in:
       - proposal_packet
+      - narration_visual_contract
     produces:
       - scene_plan
     tools_available: []
@@ -226,6 +242,7 @@ stages:
     produces:
       - render_report
       - final_review
+      - semantic_qa_report
     required_tools:
       - video_compose
       - audio_mixer
@@ -255,6 +272,8 @@ stages:
       - final_review
     optional_artifacts_in:
       - proposal_packet
+      - narration_visual_contract
+      - semantic_qa_report
     produces:
       - publish_log
     tools_available: [export_bundle]

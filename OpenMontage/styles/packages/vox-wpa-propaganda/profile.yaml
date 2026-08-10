@@ -1,0 +1,16 @@
+id: vox-wpa-propaganda
+version: 1.0.0
+family: editorial-collage
+maturity: atelier_required
+provenance: vox-director/theme/wpa-propaganda
+pipelines: [vox-collage, documentary-montage, hybrid]
+composition_modes: [collage-led, hybrid]
+asset_strategies: [generated, archival, reconstructed]
+renderers: [documentary-montage, cinematic-trailer]
+runtimes: [remotion, ffmpeg]
+aspect_ratios: ["9:16", "16:9"]
+title_policy: [embedded, overlay, hybrid]
+subtitle_policy: [caption]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 3, min_score: 0.8}
+combinability: {supports: [documentary-archive, cinematic-generative], conflicts: []}

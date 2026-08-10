@@ -12,6 +12,23 @@ import json
 import time
 from pathlib import Path
 from typing import Any, Optional
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class ConcatPlan:
+    method: str
+    needs_normalization: bool
+
+
+def build_concat_plan(signatures: list[dict[str, Any]]) -> ConcatPlan:
+    """Choose the cheapest safe concat path from ffprobe-like signatures."""
+    if not signatures:
+        return ConcatPlan("stream_copy", False)
+    fields = ("width", "height", "fps", "video_codec", "pixel_format", "audio_codec", "sample_rate", "audio_channels")
+    ref = signatures[0]
+    mismatch = any(any(ref.get(k) != item.get(k) for k in fields) for item in signatures[1:])
+    return ConcatPlan("normalize_then_stream_copy" if mismatch else "stream_copy", mismatch)
 
 from tools.base_tool import (
     BaseTool,
@@ -511,7 +528,8 @@ class VideoStitch(BaseTool):
                 return ToolResult(success=False, error=f"Failed to probe clip: {clip}")
             probes.append(info)
 
-        needs_norm = self._needs_normalization(probes)
+        concat_plan = build_concat_plan(probes)
+        needs_norm = concat_plan.needs_normalization
 
         # If clips are incompatible and auto_normalize is off, fail with advice
         if needs_norm and not auto_normalize and transition == "cut":
@@ -574,6 +592,7 @@ class VideoStitch(BaseTool):
                     "output": str(output_path),
                     "duration": round(out_duration, 2),
                     "file_size_bytes": file_size,
+                    "concat_plan": concat_plan.method,
                     **result_data,
                 },
                 artifacts=[str(output_path)],

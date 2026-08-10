@@ -1,0 +1,16 @@
+id: anime-ghibli
+version: 1.0.0
+family: illustration-animation
+maturity: atelier_required
+provenance: openmontage/styles/anime-ghibli.yaml
+pipelines: [animation, animated-explainer, character-animation]
+composition_modes: [character-led, hybrid]
+asset_strategies: [generated, procedural, character]
+renderers: [animation-first]
+runtimes: [remotion, canvas, lottie]
+aspect_ratios: ["9:16", "16:9", "1:1"]
+title_policy: [overlay, hybrid, none]
+subtitle_policy: [caption, burned-in]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 2, min_score: 0.8}
+combinability: {supports: [professional-motion, cinematic-generative], conflicts: [screen-led]}

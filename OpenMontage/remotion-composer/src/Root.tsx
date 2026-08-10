@@ -223,7 +223,7 @@ export const Root: React.FC = () => {
           taglineInSeconds: 2,
           taglineOutSeconds: undefined,
           topPx: 300,
-          fontSize: 110,
+          fontSize: 90,
           accentColor: "#F5C470",
         }}
         calculateMetadata={calculateTitledVideoMetadata}

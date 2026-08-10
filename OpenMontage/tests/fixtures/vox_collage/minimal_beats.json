@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "aspect_ratio": "9:16",
+  "beats": [
+    {
+      "id": "beat-01",
+      "start": 0,
+      "end": 2,
+      "duration": 2,
+      "shots": [{"scene_id": "beat-01-shot-01", "duration": 2}]
+    },
+    {
+      "id": "beat-02",
+      "start": 2,
+      "end": 5,
+      "duration": 3,
+      "shots": [{"scene_id": "beat-02-shot-01", "duration": 3}]
+    }
+  ]
+}

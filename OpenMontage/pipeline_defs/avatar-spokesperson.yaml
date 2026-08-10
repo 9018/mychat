@@ -7,6 +7,13 @@ description: >
   lip-sync quality, presenter framing, and CTA landing.
 category: custom
 stability: production
+creative_kernel:
+  treatment_artifact: creative_treatment
+  motion_plan_artifact: motion_plan
+  style_registry: styles/packages
+  family_qa: required
+  hero_gate: dynamic_sample_approval
+  standard_gate: technical_qa
 default_checkpoint_policy: guided
 
 orchestration:

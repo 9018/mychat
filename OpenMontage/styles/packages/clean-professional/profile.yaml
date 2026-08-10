@@ -1,0 +1,16 @@
+id: clean-professional
+version: 1.0.0
+family: professional-motion
+maturity: atelier_required
+provenance: openmontage/styles/clean-professional.yaml
+pipelines: [animated-explainer, screen-demo, hybrid]
+composition_modes: [graphics-led, hybrid]
+asset_strategies: [procedural, generated, screen]
+renderers: [explainer-data, screen-demo]
+runtimes: [remotion, ffmpeg]
+aspect_ratios: ["9:16", "16:9", "1:1"]
+title_policy: [overlay, none]
+subtitle_policy: [caption, burned-in]
+providers: [image, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 2, min_score: 0.8}
+combinability: {supports: [professional-motion, documentary-archive], conflicts: []}

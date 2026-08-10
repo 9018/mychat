@@ -174,7 +174,7 @@ remotion-composer/
 | `scene.start_seconds` / `end_seconds` | `from` / `durationInFrames` | `fps * seconds` conversion |
 | `scene.transition_in` / `transition_out` | `<TransitionSeries.Transition>` | `fade`, `slide`, `wipe` |
 | `asset_manifest.json` → assets | `assets` prop | `staticFile()` or absolute paths |
-| `style_playbook` | `theme` prop | Colors, fonts, animation curves |
+| `style_id` | `theme` prop | Colors, fonts, animation curves |
 | `edit_decisions.json` → cuts | `cuts` prop | `<Series>` with trimmed `<Video>` segments |
 | `media_profile` | Composition dimensions | `width`, `height`, `fps` from profile |
 

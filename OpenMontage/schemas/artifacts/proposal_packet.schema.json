@@ -64,12 +64,13 @@
       },
       "additionalProperties": false
     },
-    "production_plan": {
+        "production_plan": {
       "type": "object",
       "required": ["pipeline", "stages", "render_runtime"],
       "properties": {
         "pipeline": { "type": "string", "description": "Pipeline manifest name, e.g., 'animated-explainer'" },
         "playbook": { "type": "string", "description": "Selected style playbook" },
+        "creative_treatment_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$", "description": "Hash of the locked creative_treatment artifact" },
         "stages": {
           "type": "array",
           "items": {

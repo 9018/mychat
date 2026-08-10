@@ -1,0 +1,72 @@
+identity:
+  name: "Vox Paper Collage"
+  category: custom
+  mood: tactile, curious, editorial, handmade
+  pace: fast
+  best_for: "Beat-driven explainers, social documentaries and paper collage montages"
+
+visual_language:
+  color_palette:
+    primary: ["#1F2937", "#F8F0D8"]
+    accent: ["#D94841", "#E9A23B", "#2A9D8F"]
+    background: "#F8F0D8"
+    text: "#1F2937"
+    muted: "#6B7280"
+  composition: layered paper planes, torn edges, off-register print layers, deliberate negative space for titles
+  texture: paper fibers, ink bleed, photocopy grain, cutout shadows, visible handmade edges
+
+typography:
+  headings:
+    font: "Arial"
+    weight: 800
+    tracking: "-0.02em"
+  body:
+    font: "Arial"
+    weight: 500
+    line_height: 1.35
+  code:
+    font: "monospace"
+    weight: 400
+  scale_system: "major_third"
+  weight_matrix:
+    title: 800
+    heading: 700
+    body: 500
+    caption: 400
+
+motion:
+  transitions: [cut, paper-wipe, push, snap-zoom]
+  animation_style: "short physical layer shifts with visible paper inertia"
+  pacing_rules:
+    min_scene_hold_seconds: 1.0
+    max_scene_hold_seconds: 6.0
+    text_card_hold_seconds: 2.0
+    stat_card_hold_seconds: 1.5
+    transition_duration_seconds: 0.2
+  entrance: "layered cutout slides in from a purposeful direction"
+  exit: "paper layer slides, tears or hard-cuts on the beat"
+
+audio:
+  voice_style: "clear Chinese documentary narration, conversational and rhythmically precise"
+  music_mood: "optional restrained percussive bed; narration remains primary"
+  music_volume: 0.1
+  sfx_style: "paper taps, camera clicks and restrained transition pops"
+  ducking_threshold_db: -5
+
+asset_generation:
+  image_prompt_prefix: "editorial paper collage, cut paper layers, tactile paper fibers, hand-cut edges, limited ink palette, clear empty title safe zone, "
+  image_negative_prompt: "photorealistic glossy 3D, random readable text, watermark, logo, stretched anatomy, excessive gradients"
+  diagram_style: "paper labels and hand-cut arrows"
+  consistency_anchors:
+    - "same off-white paper base across scenes"
+    - "same three accent inks across a project"
+    - "visible but controlled paper grain"
+    - "no generated title text unless title_policy is embedded"
+
+quality_rules:
+  - "Every motion-required beat contains an actual video clip."
+  - "Generated images reserve a safe zone when title_policy is overlay."
+  - "Image text is never duplicated by a later full-size title."
+  - "No scene uses more than three accent inks."
+  - "Every clip is checked for aspect ratio before composition."
+  - "Paper texture supports the subject and never hides narration captions."

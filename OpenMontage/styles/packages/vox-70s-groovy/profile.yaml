@@ -1,0 +1,16 @@
+id: vox-70s-groovy
+version: 1.0.0
+family: editorial-collage
+maturity: atelier_required
+provenance: vox-director/theme/70s-groovy
+pipelines: [vox-collage, animation, hybrid]
+composition_modes: [collage-led, character-led]
+asset_strategies: [generated, procedural, archival]
+renderers: [animation-first, cinematic-trailer]
+runtimes: [remotion, canvas, ffmpeg]
+aspect_ratios: ["9:16", "16:9", "1:1"]
+title_policy: [embedded, overlay, hybrid]
+subtitle_policy: [caption]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 3, min_score: 0.8}
+combinability: {supports: [illustration-animation, professional-motion], conflicts: []}

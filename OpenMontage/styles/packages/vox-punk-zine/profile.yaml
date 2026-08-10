@@ -1,0 +1,16 @@
+id: vox-punk-zine
+version: 1.0.0
+family: editorial-collage
+maturity: atelier_required
+provenance: vox-director/theme/punk-zine
+pipelines: [vox-collage, cinematic, hybrid]
+composition_modes: [collage-led, hybrid]
+asset_strategies: [generated, archival, user_source]
+renderers: [cinematic-trailer]
+runtimes: [ffmpeg, remotion]
+aspect_ratios: ["9:16", "16:9"]
+title_policy: [embedded, overlay, hybrid]
+subtitle_policy: [caption]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 3, min_score: 0.8}
+combinability: {supports: [cinematic-generative, documentary-archive], conflicts: []}

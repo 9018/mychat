@@ -153,7 +153,6 @@ def get_required_tools(manifest: dict) -> set[str]:
     """Collect tools across stages, sub-stages, and reference-input analysis."""
     tools: set[str] = set()
     for stage in manifest["stages"]:
-        tools.update(stage.get("preferred_tools", []))
         tools.update(stage.get("fallback_tools", []))
         tools.update(stage.get("tools_available", []))
         for sub_stage in stage.get("sub_stages", []):

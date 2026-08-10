@@ -48,7 +48,7 @@ const EditorialTagline: React.FC<{
   accentColor: string;
 }> = ({ text, topPx, fontSize, accentColor }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps, durationInFrames, width } = useVideoConfig();
 
   const chars = text.split("");
 
@@ -74,10 +74,14 @@ const EditorialTagline: React.FC<{
   // Width target for the underline — measured in CSS px.
   // We let it grow up to 70% of a max line width so it visually underscores
   // the phrase no matter how many characters the tagline has.
-  const estimatedTextWidth = Math.min(
-    chars.length * fontSize * 0.48,
-    1600
-  );
+  // For CJK characters, each character is roughly fontSize wide; for Latin, ~0.55.
+  const isCJK = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]/.test(text);
+  const charWidthFactor = isCJK ? 1.0 : 0.55;
+  const maxWidth = Math.round(width * (width < 1200 ? 0.82 : 0.75));
+  const estimatedTextWidth = chars.length * fontSize * charWidthFactor;
+  const effectiveFontSize = estimatedTextWidth > maxWidth
+    ? Math.round(fontSize * (maxWidth / estimatedTextWidth))
+    : fontSize;
 
   return (
     <AbsoluteFill
@@ -113,9 +117,9 @@ const EditorialTagline: React.FC<{
           style={{
             fontFamily,
             fontWeight: 900,
-            fontSize,
+            fontSize: effectiveFontSize,
             lineHeight: 1.02,
-            letterSpacing: "-0.015em",
+            letterSpacing: isCJK ? "0.08em" : "-0.015em",
             color: "#FFF8EC",
             textAlign: "center",
             // Warm editorial glow — double drop-shadow gives a print-ink feel.
@@ -129,6 +133,7 @@ const EditorialTagline: React.FC<{
             justifyContent: "center",
             flexWrap: "nowrap",
             whiteSpace: "nowrap",
+            maxWidth,
           }}
         >
           {chars.map((char, i) => {

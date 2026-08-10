@@ -1,0 +1,12 @@
+version: 1.0
+family: professional-motion
+style_id: flat-motion-graphics
+design_read: bold flat geometry, playful but precise systems thinking
+checks:
+  - narrative_fit
+  - visual_consistency
+  - typography_legibility
+  - motion_intent
+  - audio_sync
+  - family_signature
+threshold: 0.8

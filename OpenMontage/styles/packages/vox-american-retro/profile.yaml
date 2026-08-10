@@ -1,0 +1,16 @@
+id: vox-american-retro
+version: 1.0.0
+family: editorial-collage
+maturity: atelier_required
+provenance: vox-director/theme/american-retro
+pipelines: [vox-collage, hybrid, cinematic]
+composition_modes: [collage-led, hybrid]
+asset_strategies: [generated, archival, hybrid]
+renderers: [cinematic-trailer]
+runtimes: [ffmpeg, remotion]
+aspect_ratios: ["9:16", "16:9"]
+title_policy: [embedded, overlay, hybrid]
+subtitle_policy: [caption]
+providers: [image, video, mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 3, min_score: 0.8}
+combinability: {supports: [cinematic-generative, documentary-archive], conflicts: []}

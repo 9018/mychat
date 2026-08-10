@@ -1,0 +1,12 @@
+version: 1.0
+family: professional-motion
+style_id: clean-professional
+design_read: calm expert clarity, generous white space, proof before decoration
+checks:
+  - narrative_fit
+  - visual_consistency
+  - typography_legibility
+  - motion_intent
+  - audio_sync
+  - family_signature
+threshold: 0.8

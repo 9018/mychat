@@ -172,7 +172,7 @@ def stage_project(pid: str, title: str, palette: str, scenes: list, *,
     top, bottom, glow = PALETTES[palette]
     pdir = STAGE_DIR / pid
     init_project(pid, title=title, pipeline_type="cinematic",
-                 pipeline_dir=STAGE_DIR, style_playbook="clean-professional")
+                 pipeline_dir=STAGE_DIR, style_id="clean-professional")
     art_dir = pdir / "artifacts"
 
     def cp(stage, status, artifacts, **kw):

@@ -1,0 +1,12 @@
+version: 1.0
+family: professional-motion
+style_id: minimalist-diagram
+design_read: quiet analytical diagram, one idea per frame, cognitive ease
+checks:
+  - narrative_fit
+  - visual_consistency
+  - typography_legibility
+  - motion_intent
+  - audio_sync
+  - family_signature
+threshold: 0.8

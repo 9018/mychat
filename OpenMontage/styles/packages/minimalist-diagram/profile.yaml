@@ -1,0 +1,16 @@
+id: minimalist-diagram
+version: 1.0.0
+family: professional-motion
+maturity: atelier_required
+provenance: openmontage/styles/minimalist-diagram.yaml
+pipelines: [animated-explainer, screen-demo]
+composition_modes: [graphics-led]
+asset_strategies: [procedural, svg, screen, user_source]
+renderers: [explainer-data, screen-demo]
+runtimes: [remotion, canvas, svg]
+aspect_ratios: ["9:16", "16:9", "1:1"]
+title_policy: [overlay, none]
+subtitle_policy: [caption]
+providers: [mimo_tts]
+sample_gate: {required: true, duration_seconds: 10, min_candidates: 2, min_score: 0.8}
+combinability: {supports: [professional-motion, documentary-archive], conflicts: []}

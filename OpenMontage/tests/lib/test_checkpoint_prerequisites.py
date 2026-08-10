@@ -122,14 +122,14 @@ def test_in_progress_heartbeat_is_not_blocked_by_prerequisites(tmp_path) -> None
     assert path.exists()
 
 
-def test_unknown_style_playbook_fails_before_project_creation(tmp_path) -> None:
-    with pytest.raises(CheckpointValidationError, match="style_playbook"):
+def test_unknown_style_id_fails_before_project_creation(tmp_path) -> None:
+    with pytest.raises(CheckpointValidationError, match="style_id"):
         init_project(
             "run",
             title="Run",
             pipeline_type="framework-smoke",
             pipeline_dir=tmp_path,
-            style_playbook="does-not-exist",
+            style_id="does-not-exist",
         )
 
     assert not (tmp_path / "run").exists()
@@ -143,10 +143,10 @@ def test_marker_derived_unknown_playbook_blocks_later_writes(tmp_path) -> None:
             "version": "1.0",
             "project_id": "run",
             "pipeline_type": "framework-smoke",
-            "style_playbook": "does-not-exist",
+            "style_id": "does-not-exist",
         }),
         encoding="utf-8",
     )
 
-    with pytest.raises(CheckpointValidationError, match="style_playbook"):
+    with pytest.raises(CheckpointValidationError, match="style_id"):
         write_checkpoint(tmp_path, "run", "research", "in_progress", {})

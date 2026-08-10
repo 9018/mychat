@@ -2,7 +2,7 @@
 
 日期：2026-08-11
 
-状态：用户已批准设计方向，待编写分阶段实施计划
+状态：已落地，持续维护
 
 适用范围：OpenMontage 全部视频 pipeline、全部 style package，以及迁入 OpenMontage 的 Vox 原生生产线
 
@@ -12,10 +12,10 @@
 
 OpenMontage `clean-professional` 样片通过 Remotion 确定性绘制日期、城市和温度，当前表现更准确，但这些事实主要固化在本片专属 Composition 中，现有 canonical artifacts 和 QA 没有强制记录“哪句旁白由哪个画面证明”。换主题、换 pipeline 或换风格后仍可能复发。
 
-修改前证据和实际生产方法见：
+当前执行方法见：
 
-- [`../../migration/white-dolphin-vox-current-production-record-2026-08-10.md`](../../migration/white-dolphin-vox-current-production-record-2026-08-10.md)
-- [`2026-08-10-white-dolphin-dual-native-pilot-design.md`](2026-08-10-white-dolphin-dual-native-pilot-design.md)
+- [`../../HYPERFRAMES_OPTIMIZED_USAGE.md`](../../HYPERFRAMES_OPTIMIZED_USAGE.md)
+- [`../../SINGLE_ENTRY_OPERATIONS.md`](../../SINGLE_ENTRY_OPERATIONS.md)
 
 本文是 OpenMontage 单入口全风格融合设计的语义质量补充。它不推翻多 pipeline、多 style package、多 runtime 和专用创作引擎架构，而是补齐所有生产线共同缺少的声画语义合同与证据门。
 

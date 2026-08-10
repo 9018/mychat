@@ -229,6 +229,11 @@ def _build_stage_rail(
 # ---------------------------------------------------------------------------
 
 ARTIFACT_FILES = {
+    "creative_treatment": "creative_treatment.json",
+    "motion_plan": "motion_plan.json",
+    "style_candidates": "style-candidates.json",
+    "style_bakeoff": "style-bakeoff.json",
+    "qa_report": "qa_report.json",
     "research_brief": "research_brief.json",
     "brief": "brief.json",
     "proposal_packet": "proposal_packet.json",
@@ -491,7 +496,7 @@ def _build_storyboard(
     return {
         "scenes": cards,
         "total_duration_seconds": total,
-        "style_playbook": scene_plan.get("style_playbook"),
+        "style_id": scene_plan.get("style_id"),
     }
 
 
@@ -606,6 +611,18 @@ def load_board_state(project_dir: Path) -> dict[str, Any]:
     pipeline_meta = _load_pipeline_meta(pipeline_type)
 
     artifacts = _collect_artifacts(project_dir, checkpoints)
+    bakeoff = artifacts.get("style_bakeoff") or {}
+    qa_report = artifacts.get("qa_report") or {}
+    creative_review = {
+        "candidates": artifacts.get("style_candidates") or {},
+        "bakeoff": bakeoff,
+        "qa_report": qa_report,
+        "status": qa_report.get("creative_status") or qa_report.get("status") or bakeoff.get("status") or "not_started",
+        "approvals": list(bakeoff.get("approvals") or qa_report.get("approvals") or []),
+        "provenance_path": qa_report.get("provenance_path"),
+        "review_packet_path": qa_report.get("review_packet_path"),
+        "source_labeling": qa_report.get("source_labeling"),
+    }
     events = read_events(project_dir, limit=250)
     storyboard = _build_storyboard(project_dir, artifacts, events)
     media = _scan_media(project_dir)
@@ -641,12 +658,13 @@ def load_board_state(project_dir: Path) -> dict[str, Any]:
         "project_id": project_id,
         "title": marker.get("title") or meta_json.get("name") or project_id.replace("-", " ").title(),
         "pipeline": pipeline_meta,
-        "style_playbook": marker.get("style_playbook"),
+        "style_id": marker.get("style_id"),
         "created_at": marker.get("created_at"),
         "has_marker": bool(marker),
         "has_pipeline_state": bool(checkpoints),
         "stages": stages,
         "artifacts": artifacts,
+        "creative_review": creative_review,
         "storyboard": storyboard,
         "media": media,
         "events": events,
